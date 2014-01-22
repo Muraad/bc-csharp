@@ -84,10 +84,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				return pos + len - off;;
 			}
 
-			internal byte[] GetLookAhead()
+			internal byte[] GetLookAhead(int lookAheadSize = 0)
 			{
-				byte[] temp = new byte[LookAheadSize];
-				Array.Copy(lookAhead, bufStart, temp, 0, LookAheadSize);
+                byte[] temp = null;
+                if (lookAheadSize == 0)
+                {
+                    temp = new byte[LookAheadSize];
+                    Array.Copy(lookAhead, bufStart, temp, 0, LookAheadSize);
+                }
+                else
+                {
+                    temp = new byte[lookAheadSize];
+                    Array.Copy(lookAhead, bufStart, temp, 0, lookAheadSize);
+                }
+                
+				
 				return temp;
 			}
 		}
@@ -138,12 +149,27 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
 			byte[] lookAhead = truncStream.GetLookAhead();
 
+            /*Console.WriteLine("\nLookahead: ");
+            foreach (byte b in lookAhead)
+                Console.Write(b + ", ");*/
+
 			IDigest hash = dIn.ReadDigest();
 			hash.BlockUpdate(lookAhead, 0, 2);
 			byte[] digest = DigestUtilities.DoFinal(hash);
 
+            /*Console.WriteLine("\ndigest: ");
+            foreach (byte b in digest)
+                Console.Write(b + ", ");*/
+
 			byte[] streamDigest = new byte[digest.Length];
 			Array.Copy(lookAhead, 2, streamDigest, 0, streamDigest.Length);
+
+            /*Console.WriteLine("\nstreamDigest: ");
+            foreach(byte b in streamDigest)
+                Console.Write(b + ", ");
+            Console.WriteLine("\nLookahead: ");
+            foreach (byte b in lookAhead)
+                Console.Write(b + ", ");*/
 
 			return Arrays.ConstantTimeAreEqual(digest, streamDigest);
         }

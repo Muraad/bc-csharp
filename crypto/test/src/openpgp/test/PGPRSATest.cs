@@ -813,7 +813,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 			kpg.Init(genParam);
 
-
 			AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
 
 			PgpSecretKey secretKey = new PgpSecretKey(
@@ -825,6 +824,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 "fred",
                 SymmetricKeyAlgorithmTag.Cast5,
                 passPhrase,
+                false,
                 null,
                 null,
                 new SecureRandom()
@@ -1110,6 +1110,93 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			secretKey = pgpPriv.GetSecretKey();
 
 			pgpPrivKey = secretKey.ExtractPrivateKey(pgp8Pass);
+
+            //
+            // key pair generation - CAST5 encryption with s2kDigest and Checksum digest = Sha512
+            //
+            passPhrase = "hello".ToCharArray();
+            kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            genParam = new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), new SecureRandom(), 1024, 25);
+
+            kpg.Init(genParam);
+
+
+            kp = kpg.GenerateKeyPair();
+
+            Console.WriteLine("\nOWN\n");
+            secretKey = new PgpSecretKey(
+                PgpSignature.DefaultCertification,
+                PublicKeyAlgorithmTag.RsaGeneral,
+                kp.Public,
+                kp.Private,
+                DateTime.UtcNow,
+                "fred",
+                SymmetricKeyAlgorithmTag.Cast5,
+                passPhrase,
+                HashAlgorithmTag.Sha512,            // This HashAlgorithm will be used for s2k and checksum digest! Non pgp standard!
+                null,
+                null,
+                new SecureRandom()
+                );
+
+            key = secretKey.PublicKey;
+
+
+            enumerator = key.GetUserIds().GetEnumerator();
+            enumerator.MoveNext();
+            uid = (string)enumerator.Current;
+
+
+            enumerator = key.GetSignaturesForId(uid).GetEnumerator();
+            enumerator.MoveNext();
+            sig = (PgpSignature)enumerator.Current;
+
+            sig.InitVerify(key);
+
+            if (!sig.VerifyCertification(uid, key))
+            {
+                Fail("failed to verify certification");
+            }
+
+            pgpPrivKey = secretKey.ExtractPrivateKey(passPhrase);
+
+            key = PgpPublicKey.RemoveCertification(key, uid, sig);
+
+            if (key == null)
+            {
+                Fail("failed certification removal");
+            }
+
+            keyEnc = key.GetEncoded();
+
+            key = PgpPublicKey.AddCertification(key, uid, sig);
+
+            keyEnc = key.GetEncoded();
+
+            sGen = new PgpSignatureGenerator(PublicKeyAlgorithmTag.RsaGeneral, HashAlgorithmTag.Sha512);
+
+            sGen.InitSign(PgpSignature.KeyRevocation, secretKey.ExtractPrivateKey(passPhrase));
+
+            sig = sGen.GenerateCertification(key);
+
+            key = PgpPublicKey.AddCertification(key, sig);
+
+            keyEnc = key.GetEncoded();
+
+            tmpRing = new PgpPublicKeyRing(keyEnc);
+
+            key = tmpRing.GetPublicKey();
+
+            sgEnum = key.GetSignaturesOfType(PgpSignature.KeyRevocation).GetEnumerator();
+            sgEnum.MoveNext();
+            sig = (PgpSignature)sgEnum.Current;
+
+            sig.InitVerify(key);
+
+            if (!sig.VerifyCertification(key))
+            {
+                Fail("failed to verify revocation certification");
+            }
 
 			//
             // other sig tests

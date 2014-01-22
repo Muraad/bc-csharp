@@ -11,7 +11,12 @@ namespace Org.BouncyCastle.Bcpg
     {
 		public const int UsageNone = 0x00;
 		public const int UsageChecksum = 0xff;
+
+        // In RFC4800 255 (0xff) or 254 (0xfe) means private key is encrypted.
+
 		public const int UsageSha1 = 0xfe;
+
+        public const int UsageDigest = 0xfe;
 
 		private PublicKeyPacket pubKeyPacket;
         private readonly byte[] secKeyData;
@@ -34,7 +39,7 @@ namespace Org.BouncyCastle.Bcpg
 
 			s2kUsage = bcpgIn.ReadByte();
 
-			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageDigest)
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag) bcpgIn.ReadByte();
                 s2k = new S2k(bcpgIn);
@@ -76,6 +81,7 @@ namespace Org.BouncyCastle.Bcpg
 			if (encAlgorithm != SymmetricKeyAlgorithmTag.Null)
 			{
 				this.s2kUsage = UsageChecksum;
+                // TODO: make default to not UsageChecksum!!!
 			}
 			else
 			{
@@ -142,7 +148,8 @@ namespace Org.BouncyCastle.Bcpg
 
 			pOut.WriteByte((byte) s2kUsage);
 
-			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+            // OWN: usageDigest == 
+			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageDigest)
             {
                 pOut.WriteByte((byte) encAlgorithm);
                 pOut.WriteObject(s2k);

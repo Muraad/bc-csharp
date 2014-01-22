@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-		[Obsolete("Use 'Count' property instead")]
+        [Obsolete("Use 'Count' property instead")]
 		public int Size
 		{
 			get { return order.Count; }

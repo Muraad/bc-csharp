@@ -279,7 +279,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private Stream Open(
             Stream	outStr,
             long	length,
-            byte[]	buffer)
+            byte[]	buffer,
+            HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
 			if (cOut != null)
 				throw new InvalidOperationException("generator already in open state");
@@ -401,7 +402,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				if (withIntegrityPacket)
                 {
-					string digestName = PgpUtilities.GetDigestName(HashAlgorithmTag.Sha1);
+                    //if (validityDigest == HashAlgorithmTag.None)
+                        validityDigest = HashAlgorithmTag.Sha1;         // ERROR: Not working
+
+					string digestName = PgpUtilities.GetDigestName(validityDigest);
 					IDigest digest = DigestUtilities.GetDigest(digestName);
 					myOut = digestOut = new DigestStream(myOut, null, digest);
                 }
@@ -428,9 +432,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// </summary>
         public Stream Open(
             Stream	outStr,
-            long	length)
+            long	length,
+            HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
-            return Open(outStr, length, null);
+            return Open(outStr, length, null, validityDigest);
         }
 
 		/// <summary>
@@ -450,9 +455,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// </summary>
         public Stream Open(
             Stream	outStr,
-            byte[]	buffer)
+            byte[]	buffer,
+            HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
-            return Open(outStr, 0, buffer);
+            return Open(outStr, 0, buffer, validityDigest);
         }
 
 		/// <summary>

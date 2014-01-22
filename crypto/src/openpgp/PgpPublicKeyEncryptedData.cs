@@ -83,8 +83,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		}
 
 		/// <summary>Return the decrypted data stream for the packet.</summary>
-        public Stream GetDataStream(
-            PgpPrivateKey privKey)
+        public Stream GetDataStream(PgpPrivateKey privKey, HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
 			byte[] plain = fetchSymmetricKeyData(privKey);
 
@@ -132,7 +131,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     truncStream = new TruncatedStream(encStream);
 
-					string digestName = PgpUtilities.GetDigestName(HashAlgorithmTag.Sha1);
+                    if (validityDigest == HashAlgorithmTag.None)
+                        validityDigest = HashAlgorithmTag.Sha1;         // Must be at least Sha1. None is not allowed here!!
+
+					string digestName = PgpUtilities.GetDigestName(validityDigest);
 					IDigest digest = DigestUtilities.GetDigest(digestName);
 
 					encStream = new DigestStream(truncStream, digest, null);

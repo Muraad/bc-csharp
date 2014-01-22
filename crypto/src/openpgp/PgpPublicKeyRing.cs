@@ -67,6 +67,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>Return the first public key in the ring.</summary>
         public PgpPublicKey GetPublicKey()
         {
+            if (keys.Count == 0)
+                return null;
+
             return (PgpPublicKey) keys[0];
         }
 

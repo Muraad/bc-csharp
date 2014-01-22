@@ -84,12 +84,59 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, passPhrase, useSha1, hashedPackets, unhashedPackets, rand));
         }
 
-		/// <summary>Add a subkey to the key ring to be generated with default certification.</summary>
-        public void AddSubKey(
-            PgpKeyPair keyPair)
+        #region Own Constructor that takes a checksum HashAlgorithm argument.
+
+        /// <summary>
+        /// Create a new key ring generator.
+        /// </summary>
+        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
+        /// <param name="masterKey">The master key pair.</param>
+        /// <param name="id">The id to be associated with the ring.</param>
+        /// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
+        /// <param name="passPhrase">The passPhrase to be used to protect secret keys.</param>
+        /// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
+        /// <param name="hashedPackets">Packets to be included in the certification hash.</param>
+        /// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
+        /// <param name="rand">input secured random.</param>
+        public PgpKeyRingGenerator(
+            int certificationLevel,
+            PgpKeyPair masterKey,
+            string id,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            char[] passPhrase,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom rand,
+            HashAlgorithmTag hashAlgo = HashAlgorithmTag.Sha1)
+        {
+            this.certificationLevel = certificationLevel;
+            this.masterKey = masterKey;
+            this.id = id;
+            this.encAlgorithm = encAlgorithm;
+            this.passPhrase = passPhrase;
+            this.hashedPacketVector = hashedPackets;
+            this.unhashedPacketVector = unhashedPackets;
+            this.rand = rand;
+
+            keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, passPhrase, hashAlgo, hashedPackets, unhashedPackets, rand));
+        }
+
+        #endregion
+
+        /// <summary>Add a subkey to the key ring to be generated with default certification.</summary>
+        public void AddSubKey(PgpKeyPair keyPair)
         {
 			AddSubKey(keyPair, this.hashedPacketVector, this.unhashedPacketVector);
 		}
+
+        #region Own AddSubKey Method that takes a HashAlgorithm tag argument.
+
+        public void AddSubKey(PgpKeyPair keyPair, HashAlgorithmTag hashAlgo = HashAlgorithmTag.Sha1)
+        {
+            AddSubKey(keyPair, this.hashedPacketVector, this.unhashedPacketVector, hashAlgo);
+        }
+
+        #endregion
 
 		/// <summary>
 		/// Add a subkey with specific hashed and unhashed packets associated with it and
@@ -102,12 +149,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		public void AddSubKey(
 			PgpKeyPair					keyPair,
 			PgpSignatureSubpacketVector	hashedPackets,
-			PgpSignatureSubpacketVector	unhashedPackets)
+			PgpSignatureSubpacketVector	unhashedPackets,
+            HashAlgorithmTag signatureDigest = HashAlgorithmTag.Sha1)
 		{
 			try
             {
-                PgpSignatureGenerator sGen = new PgpSignatureGenerator(
-					masterKey.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
+                PgpSignatureGenerator sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, signatureDigest);
 
 				//
                 // Generate the certification
@@ -121,7 +168,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
 
-				keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, passPhrase, useSha1, rand));
+                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, passPhrase, signatureDigest, rand));
 			}
             catch (PgpException e)
             {

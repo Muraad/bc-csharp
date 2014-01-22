@@ -184,6 +184,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             char[]						passPhrase)
         {
 			int keySize = GetKeySize(algorithm);
+
+            // TODO: Why not byte[] directly!!
 			byte[] pBytes = Strings.ToByteArray(new string(passPhrase));
 			byte[] keyBytes = new byte[(keySize + 7) / 8];
 
@@ -195,6 +197,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				IDigest digest;
 				if (s2k != null)
                 {
+                    // PGPSecretKey uses only s2k.HashAlgorithm == SHA1
 					string digestName = GetDigestName(s2k.HashAlgorithm);
 
                     try
@@ -298,7 +301,59 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return MakeKey(algorithm, keyBytes);
         }
 
-		/// <summary>Write out the passed in file as a literal data packet.</summary>
+        #region OWN MODIFICATIONS - WriteStreamToLiteralData
+
+        /// <summary>Write out the passed in stream as a literal data packet.
+        /// Modification MN.</summary>
+        public static void WriteStreamToLiteralData(
+            Stream output,
+            Stream input,
+            DateTime modificationTime)
+        {
+            PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
+            //Stream pOut = lData.Open(output, fileType, name, input.Length, modificationTime);
+            Stream pOut = lData.Open(output, PgpLiteralData.Binary, PgpLiteralData.Console, input.Length, modificationTime);
+
+            PipeStreamContents(input, pOut, 4096);
+        }
+
+        /// <summary>Write out the passed in stream as a literal data packet.
+        /// Modification MN.</summary>
+        public static void WriteStreamToLiteralData(
+            Stream output,
+            Stream input,
+            DateTime modificationTime,
+            byte[] buffer)
+        {
+            PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
+            //Stream pOut = lData.Open(output, fileType, name, input.Length, modificationTime);
+            Stream pOut = lData.Open(output, PgpLiteralData.Binary, PgpLiteralData.Console, input.Length, modificationTime);
+            PipeStreamContents(input, pOut, buffer.Length);
+        }
+
+        /// <summary>
+        /// Modification MN.
+        /// </summary>
+        /// <param name="inputStream"></param>
+        /// <param name="pOut"></param>
+        /// <param name="bufSize"></param>
+        private static void PipeStreamContents(Stream inputStream, Stream pOut, int bufSize)
+        {
+            byte[] buf = new byte[bufSize];
+
+            int len;
+            while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
+            {
+                pOut.Write(buf, 0, len);
+            }
+
+            pOut.Close();
+            inputStream.Close();
+        }
+
+        #endregion
+
+        /// <summary>Write out the passed in file as a literal data packet.</summary>
         public static void WriteFileToLiteralData(
             Stream		output,
             char		fileType,

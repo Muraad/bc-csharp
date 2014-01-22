@@ -79,6 +79,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             long		length,
             DateTime	modificationTime)
         {
+            /*if (pkOut != null)
+                throw new InvalidOperationException("generator already in open state");
+            if (outStr == null)
+                throw new ArgumentNullException("outStr");
+
+            // Do this first, since it might throw an exception
+            long unixMs = DateTimeUtilities.DateTimeToUnixMs(modificationTime);
+
+            byte[] encName = Encoding.GetEncoding(65001).GetBytes(name);
+
+            pkOut = new BcpgOutputStream(outStr, PacketTag.LiteralData, length + 2 + encName.Length + 4, oldFormat);
+
+            WriteHeader(pkOut, format, encName, unixMs);
+
+            return new WrappedGeneratorStream(this, pkOut);*/
+
 			if (pkOut != null)
 				throw new InvalidOperationException("generator already in open state");
 			if (outStr == null)
@@ -89,8 +105,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             byte[] encName = Strings.ToUtf8ByteArray(name);
 
-            pkOut = new BcpgOutputStream(outStr, PacketTag.LiteralData,
-				length + 2 + encName.Length + 4, oldFormat);
+            pkOut = new BcpgOutputStream(outStr, PacketTag.LiteralData, length + 2 + encName.Length + 4, oldFormat);
 
 			WriteHeader(pkOut, format, encName, unixMs);
 

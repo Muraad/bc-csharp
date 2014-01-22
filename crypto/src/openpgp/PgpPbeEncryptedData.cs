@@ -72,7 +72,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				{
 					truncStream = new TruncatedStream(encStream);
 
-					string digestName = PgpUtilities.GetDigestName(HashAlgorithmTag.Sha1);
+                    HashAlgorithmTag digestToUse = keyData.S2k.HashAlgorithm;
+                    //if (digestToUse == HashAlgorithmTag.None)
+                        digestToUse = HashAlgorithmTag.Sha1;    // Must be at least Sha1!
+
+                    string digestName = PgpUtilities.GetDigestName(digestToUse);
 					IDigest digest = DigestUtilities.GetDigest(digestName);
 
 					encStream = new DigestStream(truncStream, digest, null);

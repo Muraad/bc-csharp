@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
@@ -11,6 +12,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 	/// <remarks>General class to handle a PGP secret key object.</remarks>
     public class PgpSecretKey
     {
+        public static readonly int SHA1_LENGTH = 20;
+        public static readonly int SHA224_LENGTH = 28;
+        public static readonly int SHA256_LENGTH = 32;
+        public static readonly int SHA384_LENGTH = 48;
+        public static readonly int SHA512_LENGTH = 64;
+
         private readonly SecretKeyPacket	secret;
         private readonly PgpPublicKey		pub;
 
@@ -22,6 +29,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			this.pub = pub;
 		}
 
+        //OWN
 		internal PgpSecretKey(
 			PgpPrivateKey				privKey,
 			PgpPublicKey				pubKey,
@@ -29,11 +37,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			char[]						passPhrase,
 			bool						useSha1,
 			SecureRandom				rand)
-			: this(privKey, pubKey, encAlgorithm, passPhrase, useSha1, rand, false)
+			: this(privKey, pubKey, encAlgorithm, passPhrase, (useSha1) ? HashAlgorithmTag.Sha1 : HashAlgorithmTag.None, rand, false)
 		{
 		}
 
-		internal PgpSecretKey(
+        #region Own PgpSecretKey constructor
+
+        internal PgpSecretKey(
+            PgpPrivateKey privKey,
+            PgpPublicKey pubKey,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            char[] passPhrase,
+            HashAlgorithmTag s2kDigest,
+            SecureRandom rand)
+            : this(privKey, pubKey, encAlgorithm, passPhrase, s2kDigest, rand, false)
+        {
+        }
+
+        #endregion
+
+
+        // OWN
+		/*internal PgpSecretKey(
 			PgpPrivateKey				privKey,
 			PgpPublicKey				pubKey,
 			SymmetricKeyAlgorithmTag	encAlgorithm,
@@ -75,8 +100,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				pOut.WriteObject(secKey);
 
 				byte[] keyData = bOut.ToArray();
+
+                // Create checksum over private key data written via pOut(bOut)
 				byte[] checksumBytes = Checksum(useSha1, keyData, keyData.Length);
 
+                // Add the checksum to the private key data in pOut
 				pOut.Write(checksumBytes);
 
 				byte[] bOutData = bOut.ToArray();
@@ -96,12 +124,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
 					S2k s2k;
 					byte[] iv;
+
+                    // in bOutData is the private key data plus the (maybe SHA1) checksum.
+                    // The key is encrypted with given SymmetricKeyAlgorithm. (for example AES256 or CAST5)
 					byte[] encData = EncryptKeyData(bOutData, encAlgorithm, passPhrase, rand, out s2k, out iv);
 
 					int s2kUsage = useSha1
 						?	SecretKeyPacket.UsageSha1
 						:	SecretKeyPacket.UsageChecksum;
-
 					if (isMasterKey)
 					{
 						this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, s2kUsage, s2k, iv, encData);
@@ -120,9 +150,109 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("Exception encrypting key", e);
             }
+        }*/
+
+        #region OWN PgpSecretKey internal constructor that takes s2kDigest parameter
+
+        internal PgpSecretKey(
+            PgpPrivateKey privKey,
+            PgpPublicKey pubKey,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            char[] passPhrase,
+            HashAlgorithmTag s2kDigest,
+            SecureRandom rand,
+            bool isMasterKey)
+        {
+            BcpgObject secKey;
+
+            this.pub = pubKey;
+
+            switch (pubKey.Algorithm)
+            {
+                case PublicKeyAlgorithmTag.RsaEncrypt:
+                case PublicKeyAlgorithmTag.RsaSign:
+                case PublicKeyAlgorithmTag.RsaGeneral:
+                    RsaPrivateCrtKeyParameters rsK = (RsaPrivateCrtKeyParameters)privKey.Key;
+                    secKey = new RsaSecretBcpgKey(rsK.Exponent, rsK.P, rsK.Q);
+                    break;
+                case PublicKeyAlgorithmTag.Dsa:
+                    DsaPrivateKeyParameters dsK = (DsaPrivateKeyParameters)privKey.Key;
+                    secKey = new DsaSecretBcpgKey(dsK.X);
+                    break;
+                case PublicKeyAlgorithmTag.ElGamalEncrypt:
+                case PublicKeyAlgorithmTag.ElGamalGeneral:
+                    ElGamalPrivateKeyParameters esK = (ElGamalPrivateKeyParameters)privKey.Key;
+                    secKey = new ElGamalSecretBcpgKey(esK.X);
+                    break;
+                default:
+                    throw new PgpException("unknown key class");
+            }
+
+            try
+            {
+                MemoryStream bOut = new MemoryStream();
+                BcpgOutputStream pOut = new BcpgOutputStream(bOut);
+
+                pOut.WriteObject(secKey);
+
+                byte[] keyData = bOut.ToArray();
+
+                // New Checksum is used if s2kDigest is None then normal checksum calculatin is used.
+                byte[] checksumBytes = Checksum(s2kDigest, keyData, keyData.Length, false);
+
+                pOut.Write(checksumBytes);
+
+                byte[] bOutData = bOut.ToArray();
+
+                if (encAlgorithm == SymmetricKeyAlgorithmTag.Null)
+                {
+                    if (isMasterKey)
+                    {
+                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, null, null, bOutData);
+                    }
+                    else
+                    {
+                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, null, null, bOutData);
+                    }
+                }
+                else
+                {
+                    S2k s2k;
+                    byte[] iv;
+
+                    // in bOutData is the private key data plus the (hashed) checksum.
+                    // The key is encrypted with given SymmetricKeyAlgorithm. (for example AES256 or CAST5)
+                    byte[] encData = EncryptKeyData(bOutData, encAlgorithm, passPhrase, rand, out s2k, out iv, s2kDigest);
+
+                    int s2kUsage = SecretKeyPacket.UsageDigest;
+
+                    if (s2kDigest == HashAlgorithmTag.None)
+                        s2kUsage = SecretKeyPacket.UsageChecksum;
+
+                    if (isMasterKey)
+                    {
+                        this.secret = new SecretKeyPacket(pub.publicPk, encAlgorithm, s2kUsage, s2k, iv, encData);
+                    }
+                    else
+                    {
+                        this.secret = new SecretSubkeyPacket(pub.publicPk, encAlgorithm, s2kUsage, s2k, iv, encData);
+                    }
+                }
+            }
+            catch (PgpException e)
+            {
+                throw e;
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Exception encrypting key", e);
+            }
         }
 
-		public PgpSecretKey(
+        #endregion
+
+        // TODO: Think about replacing default UsageSha1 with SHA512
+        public PgpSecretKey(
             int							certificationLevel,
             PgpKeyPair					keyPair,
             string						id,
@@ -135,6 +265,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 		}
 
+        //OWN
 		public PgpSecretKey(
 			int							certificationLevel,
 			PgpKeyPair					keyPair,
@@ -145,21 +276,52 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			PgpSignatureSubpacketVector	hashedPackets,
 			PgpSignatureSubpacketVector	unhashedPackets,
 			SecureRandom				rand)
-			: this(keyPair.PrivateKey, certifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets), encAlgorithm, passPhrase, useSha1, rand, true)
+            : this(keyPair.PrivateKey, certifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets), encAlgorithm, passPhrase, (useSha1) ? HashAlgorithmTag.Sha1 : HashAlgorithmTag.None, rand, true)
 		{
 		}
 
-		private static PgpPublicKey certifiedPublicKey(
+        #region Own PgpSecretKey constructor with s2kDigest parameter
+
+        public PgpSecretKey(
+            int certificationLevel,
+            PgpKeyPair keyPair,
+            string id,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            char[] passPhrase,
+            HashAlgorithmTag s2kDigest,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom rand)
+            : this(keyPair.PrivateKey,
+                    certifiedPublicKey(certificationLevel, keyPair, id, hashedPackets, unhashedPackets, (s2kDigest == HashAlgorithmTag.None) ? HashAlgorithmTag.Sha1 : s2kDigest), 
+                    encAlgorithm, 
+                    passPhrase, 
+                    s2kDigest, 
+                    rand, 
+                    true)
+        {
+        }
+
+        #endregion
+
+        //Now has a digest parameter that is sha1 by default, but other can be used now.
+        private static PgpPublicKey certifiedPublicKey(
 			int							certificationLevel,
 			PgpKeyPair					keyPair,
 			string						id,
 			PgpSignatureSubpacketVector	hashedPackets,
-			PgpSignatureSubpacketVector	unhashedPackets)
+			PgpSignatureSubpacketVector	unhashedPackets,
+            HashAlgorithmTag digest = HashAlgorithmTag.Sha1)
 		{
 			PgpSignatureGenerator sGen;
+
+            // None is not allowed here must be at least Sha1
+            if (digest == HashAlgorithmTag.None)
+                digest = HashAlgorithmTag.Sha1;
+
 			try
 			{
-				sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
+				sGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, digest);
 			}
 			catch (Exception e)
 			{
@@ -185,6 +347,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
         }
 
+
+        // is using bad default 
 		public PgpSecretKey(
             int							certificationLevel,
             PublicKeyAlgorithmTag		algorithm,
@@ -203,6 +367,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        // OWN
 		public PgpSecretKey(
 			int							certificationLevel,
 			PublicKeyAlgorithmTag		algorithm,
@@ -220,7 +385,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 		}
 
-		/// <summary>
+        #region Own PgpSecretKey constructor with s2kDigest parameter
+
+        public PgpSecretKey(
+            int certificationLevel,
+            PublicKeyAlgorithmTag algorithm,
+            AsymmetricKeyParameter pubKey,
+            AsymmetricKeyParameter privKey,
+            DateTime time,
+            string id,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            char[] passPhrase,
+            HashAlgorithmTag s2kDigest,
+            PgpSignatureSubpacketVector hashedPackets,
+            PgpSignatureSubpacketVector unhashedPackets,
+            SecureRandom rand)
+            : this(certificationLevel, new PgpKeyPair(algorithm, pubKey, privKey, time), id, encAlgorithm, passPhrase, s2kDigest, hashedPackets, unhashedPackets, rand)
+        {
+        }
+
+        #endregion
+
+        /// <summary>
 		/// Check if this key has an algorithm type that makes it suitable to use for signing.
 		/// </summary>
 		/// <remarks>
@@ -286,6 +472,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			get { return pub.GetUserAttributes(); }
         }
 
+        // OWN:
+        // s2k password checksum can now use all Digest algorithms not only SHA1
+        // secret.s2k.HashAlgorithm is used.
 		private byte[] ExtractKeyData(
             char[] passPhrase)
         {
@@ -319,13 +508,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 					data = c.DoFinal(encData);
 
-					bool useSha1 = secret.S2kUsage == SecretKeyPacket.UsageSha1;
-					byte[] check = Checksum(useSha1, data, (useSha1) ? data.Length - 20 : data.Length - 2);
+					bool useDigest = secret.S2kUsage == SecretKeyPacket.UsageDigest;
+                    byte[] check;
+
+                    if (useDigest)
+                        check = Checksum(secret.S2k.HashAlgorithm, data, data.Length, true);
+					else
+                        check = Checksum(false, data, data.Length - 2);
+
+                    /*Console.WriteLine("--------------------------------------------------------------");
+                    Console.WriteLine("Checksum: ");
+                    foreach (byte ch in check)
+                        Console.Write(ch);
+                    Console.WriteLine("\nData: " + data);
+                    foreach (byte d in data)
+                        Console.Write(d);
+                    Console.WriteLine("--------------------------------------------------------------");*/
 
 					for (int i = 0; i != check.Length; i++)
 					{
 						if (check[i] != data[data.Length - check.Length + i])
 						{
+                            
 							throw new PgpException("Checksum mismatch at " + i + " of " + check.Length);
 						}
 					}
@@ -388,6 +592,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("Exception decrypting key", e);
             }
         }
+
 
 		/// <summary>Extract a <c>PgpPrivateKey</c> from this secret key's encrypted contents.</summary>
         public PgpPrivateKey ExtractPrivateKey(
@@ -481,7 +686,73 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			}
 		}
 
-		public byte[] GetEncoded()
+        #region Own Checksum with given Hash algorithm
+
+        private static byte[] Checksum(
+            HashAlgorithmTag s2kDigest,
+            byte[] bytes,
+            int length,
+            bool cutLength)
+        {
+            if (s2kDigest == HashAlgorithmTag.None)
+            {
+                if (cutLength)
+                    length -= 2;
+                int Checksum = 0;
+                for (int i = 0; i != length; i++)
+                {
+                    Checksum += bytes[i];
+                }
+
+                return new byte[] { (byte)(Checksum >> 8), (byte)Checksum };
+            }
+            else
+            {
+                try
+                {
+                    IDigest dig = null;
+                    switch (s2kDigest)
+                    {
+                        case HashAlgorithmTag.Sha1:
+                            dig = new Sha1Digest();
+                            if (cutLength)
+                                length -= SHA1_LENGTH;
+                            break;
+                        case HashAlgorithmTag.Sha224:
+                            dig = new Sha224Digest();
+                            if (cutLength)
+                                length -= SHA224_LENGTH;
+                            break;
+                        case HashAlgorithmTag.Sha256:
+                            dig = new Sha256Digest();
+                            if (cutLength)
+                                length -= SHA256_LENGTH;
+                            break;
+                        case HashAlgorithmTag.Sha384:
+                            dig = new Sha384Digest();
+                            if (cutLength)
+                                length -= SHA384_LENGTH;
+                            break;
+                        case HashAlgorithmTag.Sha512:
+                            dig = new Sha512Digest();
+                            if (cutLength)
+                                length -= SHA512_LENGTH;
+                            break;
+                    }
+                    dig.BlockUpdate(bytes, 0, length);
+                    return DigestUtilities.DoFinal(dig);
+                }
+                //catch (NoSuchAlgorithmException e)
+                catch (Exception e)
+                {
+                    throw new PgpException("Can't find Digest", e);
+                }
+            }
+        }
+
+        #endregion
+
+        public byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();
             Encode(bOut);
@@ -546,6 +817,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>
 		/// Return a copy of the passed in secret key, encrypted using a new password
 		/// and the passed in algorithm.
+        /// It will now use the key.secret.s2k.HashAlgorithm to encrypt the private key.
 		/// </summary>
 		/// <param name="key">The PgpSecretKey to be copied.</param>
 		/// <param name="oldPassPhrase">The current password for the key.</param>
@@ -557,7 +829,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             char[]						oldPassPhrase,
             char[]						newPassPhrase,
             SymmetricKeyAlgorithmTag	newEncAlgorithm,
-            SecureRandom				rand)
+            SecureRandom				rand,
+            HashAlgorithmTag            digest = HashAlgorithmTag.Sha1)     // Digest is used for s2k and for checksum!
         {
             byte[]	rawKeyData = key.ExtractKeyData(oldPassPhrase);
 			int		s2kUsage = key.secret.S2kUsage;
@@ -568,7 +841,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			if (newEncAlgorithm == SymmetricKeyAlgorithmTag.Null)
             {
 				s2kUsage = SecretKeyPacket.UsageNone;
-				if (key.secret.S2kUsage == SecretKeyPacket.UsageSha1)   // SHA-1 hash, need to rewrite Checksum
+
+                // Is here an error? The if ask for s2kUsage equals UsageSha1 but inside the Checksum (old) is 
+                // called with first parameter UsageSha1 = false!!
+
+                // TODO: calculate checksum with HashAlgorithm from s2k.
+				if (key.secret.S2kUsage == SecretKeyPacket.UsageDigest)   // SHA-1 hash, need to rewrite Checksum
 				{
 					keyData = new byte[rawKeyData.Length - 18];
 
@@ -588,7 +866,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 try
                 {
-					keyData = EncryptKeyData(rawKeyData, newEncAlgorithm, newPassPhrase, rand, out s2k, out iv);
+                    // Give the EncryptKeyData a s2kdigest parameter 
+                    keyData = EncryptKeyData(rawKeyData, 
+                                            newEncAlgorithm, 
+                                            newPassPhrase, 
+                                            rand, 
+                                            out s2k,
+                                            out iv,
+                                            key.secret.S2k.HashAlgorithm);      // If HashAlgorithm is null then EncryptKeyData uses Sha1, none is not allowed here!.
                 }
                 catch (PgpException e)
                 {
@@ -603,19 +888,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			SecretKeyPacket secret;
             if (key.secret is SecretSubkeyPacket)
             {
-                secret = new SecretSubkeyPacket(key.secret.PublicKeyPacket,
-					newEncAlgorithm, s2kUsage, s2k, iv, keyData);
+                secret = new SecretSubkeyPacket(key.secret.PublicKeyPacket, newEncAlgorithm, s2kUsage, s2k, iv, keyData);
             }
             else
             {
-                secret = new SecretKeyPacket(key.secret.PublicKeyPacket,
-	                newEncAlgorithm, s2kUsage, s2k, iv, keyData);
+                secret = new SecretKeyPacket(key.secret.PublicKeyPacket, newEncAlgorithm, s2kUsage, s2k, iv, keyData);
             }
 
 			return new PgpSecretKey(secret, key.pub);
         }
 
-		/// <summary>Replace the passed the public key on the passed in secret key.</summary>
+		/// <summary>Replace the passed public key on the passed in secret key.</summary>
 		/// <param name="secretKey">Secret key to change.</param>
 		/// <param name="publicKey">New public key.</param>
 		/// <returns>A new secret key.</returns>
@@ -630,37 +913,42 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return new PgpSecretKey(secretKey.secret, publicKey);
 		}
 
-		private static byte[] EncryptKeyData(
-			byte[]						rawKeyData,
-			SymmetricKeyAlgorithmTag	encAlgorithm,
-			char[]						passPhrase,
-			SecureRandom				random,
-			out S2k						s2k,
-			out byte[]					iv)
-		{
-			IBufferedCipher c;
-			try
-			{
-				string cName = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
-				c = CipherUtilities.GetCipher(cName + "/CFB/NoPadding");
-			}
-			catch (Exception e)
-			{
-				throw new PgpException("Exception creating cipher", e);
-			}
+        private static byte[] EncryptKeyData(byte[] rawKeyData, 
+                                            SymmetricKeyAlgorithmTag encAlgorithm,
+                                            char[] passPhrase,
+                                            SecureRandom random,
+                                            out S2k s2k,
+                                            out byte[] iv,
+                                            HashAlgorithmTag s2kDigest = HashAlgorithmTag.Sha1)
+        {
+            IBufferedCipher c;
+            try
+            {
+                string cName = PgpUtilities.GetSymmetricCipherName(encAlgorithm);
+                c = CipherUtilities.GetCipher(cName + "/CFB/NoPadding");
+            }
+            catch (Exception e)
+            {
+                throw new PgpException("Exception creating cipher", e);
+            }
 
-			byte[] s2kIV = new byte[8];
-			random.NextBytes(s2kIV);
-			s2k = new S2k(HashAlgorithmTag.Sha1, s2kIV, 0x60);
+            byte[] s2kIV = new byte[8];
+            random.NextBytes(s2kIV);
 
-			KeyParameter kp = PgpUtilities.MakeKeyFromPassPhrase(encAlgorithm, s2k, passPhrase);
+            // s2kDigest is not allowed to be None here! PGP specification is using Sha1 always.
+            if (s2kDigest == HashAlgorithmTag.None)
+                s2kDigest = HashAlgorithmTag.Sha1;
 
-			iv = new byte[c.GetBlockSize()];
-			random.NextBytes(iv);
+            s2k = new S2k(s2kDigest, s2kIV, 0x60);
+            KeyParameter kp = PgpUtilities.MakeKeyFromPassPhrase(encAlgorithm, s2k, passPhrase);
 
-			c.Init(true, new ParametersWithRandom(new ParametersWithIV(kp, iv), random));
+            iv = new byte[c.GetBlockSize()];
+            random.NextBytes(iv);
 
-			return c.DoFinal(rawKeyData);
-		}
+            c.Init(true, new ParametersWithRandom(new ParametersWithIV(kp, iv), random));
+
+            return c.DoFinal(rawKeyData);
+        }
+
     }
 }

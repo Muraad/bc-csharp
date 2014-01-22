@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             else
             {
                 byte[] kBytes = publicPk.GetEncodedContents();
-
+                
 				try
                 {
                     IDigest digest = DigestUtilities.GetDigest("SHA1");

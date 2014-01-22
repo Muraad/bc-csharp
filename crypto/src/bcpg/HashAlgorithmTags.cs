@@ -3,6 +3,7 @@ namespace Org.BouncyCastle.Bcpg
 	/// <remarks>Basic tags for hash algorithms.</remarks>
 	public enum HashAlgorithmTag
 	{
+        None = 0,
 		MD5 = 1,			// MD5
 		Sha1 = 2,			// SHA-1
 		RipeMD160 = 3,		// RIPE-MD/160

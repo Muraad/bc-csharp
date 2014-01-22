@@ -144,17 +144,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             //
             MemoryStream bOut = new UncloseableMemoryStream();
 
-            PgpCompressedDataGenerator comData = new PgpCompressedDataGenerator(
-                CompressionAlgorithmTag.Zip);
+            PgpCompressedDataGenerator comData = new PgpCompressedDataGenerator(CompressionAlgorithmTag.Zip);
 
             PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
 			Stream comOut = comData.Open(new UncloseableStream(bOut));
-            Stream ldOut = lData.Open(
-				new UncloseableStream(comOut),
-                PgpLiteralData.Binary,
-                PgpLiteralData.Console,
-                text.Length,
-                TestDateTime);
+            Stream ldOut = lData.Open(new UncloseableStream(comOut),
+                                        PgpLiteralData.Binary,
+                                        PgpLiteralData.Console,
+                                        text.Length,
+                                        TestDateTime);
 
 			ldOut.Write(text, 0, text.Length);
 			ldOut.Close();
@@ -168,7 +166,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpEncryptedDataGenerator cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, new SecureRandom());
 
-            cPk.AddMethod(pass);
+            cPk.AddMethod(pass, HashAlgorithmTag.Sha512);
 
 			byte[] bOutData = bOut.ToArray();
 			Stream cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
@@ -188,7 +186,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, new SecureRandom());
 
-			cPk.AddMethod(pass);
+            cPk.AddMethod(pass, HashAlgorithmTag.Sha512);
 
 			bOutData = bOut.ToArray();
 			cOut = cPk.Open(new UncloseableStream(cbOut), bOutData.Length);
@@ -233,7 +231,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, rand);
 
-            cPk.AddMethod(pass);
+            cPk.AddMethod(pass, HashAlgorithmTag.Sha512);
 
 			cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
             {
@@ -256,7 +254,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             cPk = new PgpEncryptedDataGenerator(
 				SymmetricKeyAlgorithmTag.Cast5, true, rand);
 
-            cPk.AddMethod(pass);
+            cPk.AddMethod(pass, HashAlgorithmTag.Sha512);
 
             cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
             bOutData = bOut.ToArray();
@@ -328,7 +326,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			cbOut = new MemoryStream();
 			cPk = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Cast5, true, rand);
 
-			cPk.AddMethod(pass);
+            cPk.AddMethod(pass, HashAlgorithmTag.Sha1);
 
 			cOut = cPk.Open(new UncloseableStream(cbOut), new byte[16]);
 

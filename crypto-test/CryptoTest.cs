@@ -14,11 +14,11 @@ namespace crypto_test
 
 			try
 			{
-				Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
+				//Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
 				//Org.BouncyCastle.Bcpg.OpenPgp.Tests.Dsa2Test.?
-				Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
-				Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests.AllTests.Main(args);
-				Org.BouncyCastle.Cms.Tests.AllTests.Main(args);
+				//Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
+				//Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests.AllTests.Main(args);
+				/*Org.BouncyCastle.Cms.Tests.AllTests.Main(args);
 				Org.BouncyCastle.Crypto.Tests.RegressionTest.Main(args);
 				Org.BouncyCastle.Crypto.IO.Tests.AllTests.Main(args);
 				Org.BouncyCastle.Math.Tests.AllTests.Main(args);
@@ -34,7 +34,11 @@ namespace crypto_test
 				//Org.BouncyCastle.Security.Tests.?
 				Org.BouncyCastle.Tests.RegressionTest.Main(args);
 				Org.BouncyCastle.Tsp.Tests.AllTests.Main(args);
-				//Org.BouncyCastle.X509.Tests.?
+				//Org.BouncyCastle.X509.Tests.?*/
+
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpSignatureTest.Main(args);
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpRsaTest.Main(args);
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpPbeTest.Main(args);
 			}
 			catch (Exception e)
 			{
@@ -46,6 +50,7 @@ namespace crypto_test
 			long elapsedTicks = after.Ticks - before.Ticks;
 
 			Console.WriteLine("Done in {0}ms.", elapsedTicks / TimeSpan.TicksPerMillisecond);
+            Console.ReadLine();
 		}
 	}
 }
