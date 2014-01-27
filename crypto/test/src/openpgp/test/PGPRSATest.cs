@@ -811,12 +811,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             kpg.Init(genParam);
 
-<<<<<<< HEAD
-			AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
-=======
 
             AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
->>>>>>> upstream/master
 
             PgpSecretKey secretKey = new PgpSecretKey(
                 PgpSignature.DefaultCertification,
@@ -1114,8 +1110,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             pgpPrivKey = secretKey.ExtractPrivateKey(pgp8Pass);
 
-            //
-<<<<<<< HEAD
             // key pair generation - CAST5 encryption with s2kDigest and Checksum digest = Sha512
             //
             passPhrase = "hello".ToCharArray();
@@ -1203,8 +1197,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
 
 			//
-=======
->>>>>>> upstream/master
+
             // other sig tests
             //
             PerformTestSig(HashAlgorithmTag.Sha256, secretKey.PublicKey, pgpPrivKey);
