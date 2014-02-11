@@ -30,6 +30,48 @@ namespace Org.BouncyCastle.Crypto.EC
         }
 
         /*
+         * secp192k1
+         */
+        internal class Secp192k1Holder
+            : X9ECParametersHolder
+        {
+            private Secp192k1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp192k1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = null;
+                ECCurve curve = ConfigureCurve(new SecP192K1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "DB4FF10EC057E9AE26B07D0280B7F4341DA5D1B1EAE06C7D"
+                    + "9B2F2F6D9C5628A7844163D015BE86344082AA88D95E2F9D"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
+         * secp192r1
+         */
+        internal class Secp192r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp192r1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp192r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("3045AE6FC8422F64ED579528D38120EAE12196D5");
+                ECCurve curve = ConfigureCurve(new SecP192R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "188DA80EB03090F67CBF20EB43A18800F4FF0AFD82FF1012"
+                    + "07192B95FFC8DA78631011ED6B24CDD573F977A11E794811"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
          * secp256k1
          */
         internal class Secp256k1Holder
@@ -46,10 +88,7 @@ namespace Org.BouncyCastle.Crypto.EC
                 ECPoint G = curve.DecodePoint(Hex.Decode("04"
                     + "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
                     + "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"));
-                //return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
-                BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141");
-                BigInteger h = BigInteger.ValueOf(1);
-                return new X9ECParameters(curve, G, n, h, S);
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
             }
         }
 
@@ -70,10 +109,28 @@ namespace Org.BouncyCastle.Crypto.EC
                 ECPoint G = curve.DecodePoint(Hex.Decode("04"
                     + "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296"
                     + "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5"));
-                //return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
-                BigInteger n = FromHex("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
-                BigInteger h = BigInteger.ValueOf(1);
-                return new X9ECParameters(curve, G, n, h, S);
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
+            }
+        }
+
+        /*
+         * secp521r1
+         */
+        internal class Secp521r1Holder
+            : X9ECParametersHolder
+        {
+            private Secp521r1Holder() { }
+
+            internal static readonly X9ECParametersHolder Instance = new Secp521r1Holder();
+
+            protected override X9ECParameters CreateParameters()
+            {
+                byte[] S = Hex.Decode("D09E8800291CB85396CC6717393284AAA0DA64BA");
+                ECCurve curve = ConfigureCurve(new SecP521R1Curve());
+                ECPoint G = curve.DecodePoint(Hex.Decode("04"
+                    + "00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66"
+                    + "011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650"));
+                return new X9ECParameters(curve, G, curve.Order, curve.Cofactor, S);
             }
         }
 
@@ -90,10 +147,15 @@ namespace Org.BouncyCastle.Crypto.EC
 
         static CustomNamedCurves()
         {
+            DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
+            DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);
             DefineCurve("secp256k1", SecObjectIdentifiers.SecP256k1, Secp256k1Holder.Instance);
             DefineCurve("secp256r1", SecObjectIdentifiers.SecP256r1, Secp256r1Holder.Instance);
+            DefineCurve("secp521r1", SecObjectIdentifiers.SecP521r1, Secp521r1Holder.Instance);
 
+            objIds.Add(Platform.ToLowerInvariant("P-192"), SecObjectIdentifiers.SecP192r1);
             objIds.Add(Platform.ToLowerInvariant("P-256"), SecObjectIdentifiers.SecP256r1);
+            objIds.Add(Platform.ToLowerInvariant("P-521"), SecObjectIdentifiers.SecP521r1);
         }
 
         public static X9ECParameters GetByName(string name)

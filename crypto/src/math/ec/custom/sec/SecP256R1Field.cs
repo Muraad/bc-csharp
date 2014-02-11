@@ -83,58 +83,65 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
         }
 
-        public static void Reduce(uint[] tt, uint[] z)
+        public static void Reduce(uint[] xx, uint[] z)
         {
-            long t08 = tt[8], t09 = tt[9], t10 = tt[10], t11 = tt[11];
-            long t12 = tt[12], t13 = tt[13], t14 = tt[14], t15 = tt[15];
+            long xx08 = xx[8], xx09 = xx[9], xx10 = xx[10], xx11 = xx[11];
+            long xx12 = xx[12], xx13 = xx[13], xx14 = xx[14], xx15 = xx[15];
+
+            long t0 = xx08 + xx09;
+            long t1 = xx09 + xx10;
+            long t2 = xx10 + xx11;
+            long t3 = xx11 + xx12;
+            long t4 = xx12 + xx13;
+            long t5 = xx13 + xx14;
+            long t6 = xx14 + xx15;
 
             long cc = 0;
-            cc += (long)tt[0] + t08 + t09 - t11 - t12 - t13 - t14;
+            cc += (long)xx[0] + t0 - t3 - t5;
             z[0] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[1] + t09 + t10 - t12 - t13 - t14 - t15;
+            cc += (long)xx[1] + t1 - t4 - t6;
             z[1] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[2] + t10 + t11 - t13 - t14 - t15;
+            cc += (long)xx[2] + t2 - t5 - xx15;
             z[2] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[3] + ((t11 + t12) << 1) + t13 - t15 - t08 - t09;
+            cc += (long)xx[3] + (t3 << 1) + xx13 - xx15 - t0;
             z[3] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[4] + ((t12 + t13) << 1) + t14 - t09 - t10;
+            cc += (long)xx[4] + (t4 << 1) + xx14 - t1;
             z[4] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[5] + ((t13 + t14) << 1) + t15 - t10 - t11;
+            cc += (long)xx[5] + (t5 << 1) + xx15 - t2;
             z[5] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[6] + ((t14 + t15) << 1) + t14 + t13 - t08 - t09;
+            cc += (long)xx[6] + (t6 << 1) + t5 - t0;
             z[6] = (uint)cc;
             cc >>= 32;
-            cc += (long)tt[7] + (t15 << 1) + t15 + t08 - t10 - t11 - t12 - t13;
+            cc += (long)xx[7] + (xx15 << 1) + xx15 + xx08 - t2 - t4;
             z[7] = (uint)cc;
             cc >>= 32;
 
             int c = (int)cc;
-            if (c > 0)
-            {
-                do
-                {
-                    c += Nat256.Sub(z, P, z);
-                }
-                while (c != 0);
-
-                if (z[7] == P7 && Nat256.Gte(z, P))
-                {
-                    Nat256.Sub(z, P, z);
-                }
-            }
-            else if (c < 0)
+            if (c < 0)
             {
                 do
                 {
                     c += (int)Nat256.Add(z, P, z);
                 }
-                while (c != 0);
+                while (c < 0);
+            }
+            else
+            {
+                while (c > 0)
+                {
+                    c += Nat256.Sub(z, P, z);
+                }
+
+                if (z[7] == P7 && Nat256.Gte(z, P))
+                {
+                    Nat256.Sub(z, P, z);
+                }
             }
         }
 
@@ -143,6 +150,21 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             uint[] tt = Nat256.CreateExt();
             Nat256.Square(x, tt);
             Reduce(tt, z);
+        }
+
+        public static void SquareN(uint[] x, int n, uint[] z)
+        {
+            Debug.Assert(n > 0);
+
+            uint[] tt = Nat256.CreateExt();
+            Nat256.Square(x, tt);
+            Reduce(tt, z);
+
+            while (--n > 0)
+            {
+                Nat256.Square(z, tt);
+                Reduce(tt, z);
+            }
         }
 
         public static void Subtract(uint[] x, uint[] y, uint[] z)

@@ -71,8 +71,9 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        protected IFiniteField m_field;
+        protected readonly IFiniteField m_field;
         protected ECFieldElement m_a, m_b;
+        protected BigInteger m_order, m_cofactor;
 
         protected int m_coord = COORD_AFFINE;
         protected ECMultiplier m_multiplier = null;
@@ -115,26 +116,40 @@ namespace Org.BouncyCastle.Math.EC
             return coord == COORD_AFFINE;
         }
 
-        public virtual PreCompInfo GetPreCompInfo(ECPoint p)
+        public virtual PreCompInfo GetPreCompInfo(ECPoint point, string name)
         {
-            CheckPoint(p);
-            return p.m_preCompInfo;
+            CheckPoint(point);
+            lock (point)
+            {
+                IDictionary table = point.m_preCompTable;
+                return table == null ? null : (PreCompInfo)table[name];
+            }
         }
 
         /**
-         * Sets the <code>PreCompInfo</code> for a point on this curve. Used by
+         * Adds <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
          * <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
          * by subsequent multiplication.
          * 
          * @param point
          *            The <code>ECPoint</code> to store precomputations for.
+         * @param name
+         *            A <code>String</code> used to index precomputations of different types.
          * @param preCompInfo
          *            The values precomputed by the <code>ECMultiplier</code>.
          */
-        public virtual void SetPreCompInfo(ECPoint point, PreCompInfo preCompInfo)
+        public virtual void SetPreCompInfo(ECPoint point, string name, PreCompInfo preCompInfo)
         {
             CheckPoint(point);
-            point.m_preCompInfo = preCompInfo;
+            lock (point)
+            {
+                IDictionary table = point.m_preCompTable;
+                if (null == table)
+                {
+                    point.m_preCompTable = table = Platform.CreateHashtable(4);
+                }
+                table[name] = preCompInfo;
+            }
         }
 
         public virtual ECPoint ImportPoint(ECPoint p)
@@ -218,6 +233,16 @@ namespace Org.BouncyCastle.Math.EC
         public virtual ECFieldElement B
         {
             get { return m_b; }
+        }
+
+        public virtual BigInteger Order
+        {
+            get { return m_order; }
+        }
+
+        public virtual BigInteger Cofactor
+        {
+            get { return m_cofactor; }
         }
 
         public virtual int CoordinateSystem
@@ -329,7 +354,7 @@ namespace Org.BouncyCastle.Math.EC
                     BigInteger X1 = new BigInteger(1, encoded, 1, expectedLength);
                     BigInteger Y1 = new BigInteger(1, encoded, 1 + expectedLength, expectedLength);
 
-                    p = CreatePoint(X1, Y1, false);
+                    p = CreatePoint(X1, Y1);
                     break;
                 }
 
@@ -353,6 +378,11 @@ namespace Org.BouncyCastle.Math.EC
         protected readonly FpPoint m_infinity;
 
         public FpCurve(BigInteger q, BigInteger a, BigInteger b)
+            : this(q, a, b, null, null)
+        {
+        }
+
+        public FpCurve(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
             : base(FiniteFields.GetPrimeField(q))
         {
             this.m_q = q;
@@ -361,10 +391,17 @@ namespace Org.BouncyCastle.Math.EC
 
             this.m_a = FromBigInteger(a);
             this.m_b = FromBigInteger(b);
+            this.m_order = order;
+            this.m_cofactor = cofactor;
             this.m_coord = FP_DEFAULT_COORDS;
         }
 
         protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b)
+            : this(q, r, a, b, null, null)
+        {
+        }
+
+        protected FpCurve(BigInteger q, BigInteger r, ECFieldElement a, ECFieldElement b, BigInteger order, BigInteger cofactor)
             : base(FiniteFields.GetPrimeField(q))
         {
             this.m_q = q;
@@ -373,12 +410,14 @@ namespace Org.BouncyCastle.Math.EC
 
             this.m_a = a;
             this.m_b = b;
+            this.m_order = order;
+            this.m_cofactor = cofactor;
             this.m_coord = FP_DEFAULT_COORDS;
         }
 
         protected override ECCurve CloneCurve()
         {
-            return new FpCurve(m_q, m_r, m_a, m_b);
+            return new FpCurve(m_q, m_r, m_a, m_b, m_order, m_cofactor);
         }
 
         public override bool SupportsCoordinateSystem(int coord)
@@ -535,16 +574,6 @@ namespace Org.BouncyCastle.Math.EC
         private readonly int k3;
 
         /**
-         * The order of the base point of the curve.
-         */
-        private readonly BigInteger n;
-
-        /**
-         * The cofactor of the curve.
-         */
-        private readonly BigInteger h;
-
-        /**
          * The point at infinity on this curve.
          */
         protected readonly F2mPoint m_infinity;
@@ -598,8 +627,8 @@ namespace Org.BouncyCastle.Math.EC
          * @param b The coefficient <code>b</code> in the Weierstrass equation
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
-         * @param n The order of the main subgroup of the elliptic curve.
-         * @param h The cofactor of the elliptic curve, i.e.
+         * @param order The order of the main subgroup of the elliptic curve.
+         * @param cofactor The cofactor of the elliptic curve, i.e.
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
         public F2mCurve(
@@ -607,9 +636,9 @@ namespace Org.BouncyCastle.Math.EC
             int			k, 
             BigInteger	a, 
             BigInteger	b,
-            BigInteger	n,
-            BigInteger	h)
-            : this(m, k, 0, 0, a, b, n, h)
+            BigInteger	order,
+            BigInteger	cofactor)
+            : this(m, k, 0, 0, a, b, order, cofactor)
         {
         }
 
@@ -663,8 +692,8 @@ namespace Org.BouncyCastle.Math.EC
          * @param b The coefficient <code>b</code> in the Weierstrass equation
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
-         * @param n The order of the main subgroup of the elliptic curve.
-         * @param h The cofactor of the elliptic curve, i.e.
+         * @param order The order of the main subgroup of the elliptic curve.
+         * @param cofactor The cofactor of the elliptic curve, i.e.
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
         public F2mCurve(
@@ -674,16 +703,16 @@ namespace Org.BouncyCastle.Math.EC
             int			k3,
             BigInteger	a, 
             BigInteger	b,
-            BigInteger	n,
-            BigInteger	h)
+            BigInteger	order,
+            BigInteger	cofactor)
             : base(BuildField(m, k1, k2, k3))
         {
             this.m = m;
             this.k1 = k1;
             this.k2 = k2;
             this.k3 = k3;
-            this.n = n;
-            this.h = h;
+            this.m_order = order;
+            this.m_cofactor = cofactor;
             this.m_infinity = new F2mPoint(this, null, null);
 
             if (k1 == 0)
@@ -715,8 +744,8 @@ namespace Org.BouncyCastle.Math.EC
             this.k1 = k1;
             this.k2 = k2;
             this.k3 = k3;
-            this.n = order;
-            this.h = cofactor;
+            this.m_order = order;
+            this.m_cofactor = cofactor;
 
             this.m_infinity = new F2mPoint(this, null, null);
             this.m_a = a;
@@ -726,7 +755,7 @@ namespace Org.BouncyCastle.Math.EC
 
         protected override ECCurve CloneCurve()
         {
-            return new F2mCurve(m, k1, k2, k3, m_a, m_b, n, h);
+            return new F2mCurve(m, k1, k2, k3, m_a, m_b, m_order, m_cofactor);
         }
 
         public override bool SupportsCoordinateSystem(int coord)
@@ -762,6 +791,7 @@ namespace Org.BouncyCastle.Math.EC
             return new F2mFieldElement(this.m, this.k1, this.k2, this.k3, x);
         }
 
+        [Obsolete("Per-point compression property will be removed")]
         public override ECPoint CreatePoint(BigInteger x, BigInteger y, bool withCompression)
         {
             ECFieldElement X = FromBigInteger(x), Y = FromBigInteger(y);
@@ -810,7 +840,7 @@ namespace Org.BouncyCastle.Math.EC
         {
             get
             {
-                return n != null && h != null && m_a.BitLength <= 1 && m_b.IsOne;
+                return m_order != null && m_cofactor != null && m_b.IsOne && (m_a.IsZero || m_a.IsOne);
             }
         }
 
@@ -856,19 +886,16 @@ namespace Org.BouncyCastle.Math.EC
             return si;
         }
 
-        protected override ECPoint DecompressPoint(
-            int			yTilde,
-            BigInteger	X1)
+        protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
         {
-            ECFieldElement xp = FromBigInteger(X1);
-            ECFieldElement yp;
+            ECFieldElement xp = FromBigInteger(X1), yp;
             if (xp.IsZero)
             {
                 yp = m_b.Sqrt();
             }
             else
             {
-                ECFieldElement beta = xp.Add(m_a).Add(m_b.Multiply(xp.Square().Invert()));
+                ECFieldElement beta = xp.Square().Invert().Multiply(B).Add(A).Add(xp);
                 ECFieldElement z = SolveQuadradicEquation(beta);
 
                 if (z == null)
@@ -879,18 +906,17 @@ namespace Org.BouncyCastle.Math.EC
                     z = z.AddOne();
                 }
 
-                yp = xp.Multiply(z);
-
                 switch (this.CoordinateSystem)
                 {
                     case COORD_LAMBDA_AFFINE:
                     case COORD_LAMBDA_PROJECTIVE:
                     {
-                        yp = yp.Divide(xp).Add(xp);
+                        yp = z.Add(xp);
                         break;
                     }
                     default:
                     {
+                        yp = z.Multiply(xp);
                         break;
                     }
                 }
@@ -973,14 +999,16 @@ namespace Org.BouncyCastle.Math.EC
             get { return k3; }
         }
 
+        [Obsolete("Use 'Order' property instead")]
         public BigInteger N
         {
-            get { return n; }
+            get { return m_order; }
         }
 
+        [Obsolete("Use 'Cofactor' property instead")]
         public BigInteger H
         {
-            get { return h; }
+            get { return m_cofactor; }
         }
     }
 }

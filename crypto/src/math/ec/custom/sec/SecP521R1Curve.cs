@@ -5,43 +5,43 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Math.EC.Custom.Sec
 {
-    internal class SecP256R1Curve
+    internal class SecP521R1Curve
         : ECCurve
     {
         public static readonly BigInteger q = new BigInteger(1,
-            Hex.Decode("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"));
+            Hex.Decode("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
 
-        private const int SecP256R1_DEFAULT_COORDS = COORD_JACOBIAN;
+        private const int SecP521R1_DEFAULT_COORDS = COORD_JACOBIAN;
 
-        protected readonly SecP256R1Point m_infinity;
+        protected readonly SecP521R1Point m_infinity;
 
-        public SecP256R1Curve()
+        public SecP521R1Curve()
             : base(FiniteFields.GetPrimeField(q))
         {
-            this.m_infinity = new SecP256R1Point(this, null, null);
+            this.m_infinity = new SecP521R1Point(this, null, null);
 
             this.m_a = FromBigInteger(new BigInteger(1,
-                Hex.Decode("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC")));
+                Hex.Decode("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC")));
             this.m_b = FromBigInteger(new BigInteger(1,
-                Hex.Decode("5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B")));
-            this.m_order = new BigInteger(1, Hex.Decode("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551"));
+                Hex.Decode("0051953EB9618E1C9A1F929A21A0B68540EEA2DA725B99B315F3B8B489918EF109E156193951EC7E937B1652C0BD3BB1BF073573DF883D2C34F1EF451FD46B503F00")));
+            this.m_order = new BigInteger(1, Hex.Decode("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409"));
             this.m_cofactor = BigInteger.One;
-            this.m_coord = SecP256R1_DEFAULT_COORDS;
+            this.m_coord = SecP521R1_DEFAULT_COORDS;
         }
 
         protected override ECCurve CloneCurve()
         {
-            return new SecP256R1Curve();
+            return new SecP521R1Curve();
         }
 
         public override bool SupportsCoordinateSystem(int coord)
         {
             switch (coord)
             {
-            case COORD_JACOBIAN:
-                return true;
-            default:
-                return false;
+                case COORD_JACOBIAN:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -62,12 +62,12 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
-            return new SecP256R1FieldElement(x);
+            return new SecP521R1FieldElement(x);
         }
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, bool withCompression)
         {
-            return new SecP256R1Point(this, x, y, withCompression);
+            return new SecP521R1Point(this, x, y, withCompression);
         }
 
         protected override ECPoint DecompressPoint(int yTilde, BigInteger X1)
@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 beta = beta.Negate();
             }
 
-            return new SecP256R1Point(this, x, beta, true);
+            return new SecP521R1Point(this, x, beta, true);
         }
     }
 }
