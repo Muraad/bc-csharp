@@ -2805,7 +2805,40 @@
     <Compile Include="src\math\ec\abc\ZTauElement.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\math\ec\custom\sec\Curve25519Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\Nat192.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\math\ec\custom\sec\Nat256.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\Nat512.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192K1Curve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192K1Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192K1FieldElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192K1Point.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192R1Curve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192R1Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192R1FieldElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP192R1Point.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\custom\sec\SecP256K1Curve.cs">
@@ -2830,6 +2863,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\custom\sec\SecP256R1Point.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP521R1Curve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP521R1Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP521R1FieldElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP521R1Point.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\ECAlgorithms.cs">
@@ -2857,6 +2902,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\multiplier\ECMultiplier.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\multiplier\FixedPointCombMultiplier.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\multiplier\FixedPointPreCompInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\multiplier\FixedPointUtilities.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\multiplier\MixedNafR2LMultiplier.cs">
@@ -5434,4 +5488,3 @@
     <PostBuildEvent />
   </PropertyGroup>
 </Project>
-
