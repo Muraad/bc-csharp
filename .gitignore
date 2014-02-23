@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #################
 ## Eclipse
 #################
@@ -220,3 +221,8 @@ pip-log.txt
 *.cache
 *.suo
 *.suo
+=======
+**/bin
+**/dist
+**/obj
+>>>>>>> upstream/master
