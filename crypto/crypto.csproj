@@ -2811,7 +2811,13 @@
     <Compile Include="src\math\ec\custom\sec\Nat192.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\math\ec\custom\sec\Nat224.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\math\ec\custom\sec\Nat256.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\Nat384.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\custom\sec\Nat512.cs">
@@ -2841,6 +2847,30 @@
     <Compile Include="src\math\ec\custom\sec\SecP192R1Point.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224K1Curve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224K1Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224K1FieldElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224K1Point.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224R1Curve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224R1Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224R1FieldElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP224R1Point.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\math\ec\custom\sec\SecP256K1Curve.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2863,6 +2893,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\custom\sec\SecP256R1Point.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP384R1Curve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP384R1Field.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP384R1FieldElement.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\math\ec\custom\sec\SecP384R1Point.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\math\ec\custom\sec\SecP521R1Curve.cs">
@@ -4404,6 +4446,9 @@
     <Compile Include="test\src\openpgp\test\PgpMarkerTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\src\openpgp\test\PGPNoPrivateKeyTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test\src\openpgp\test\PGPPacketTest.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -5488,4 +5533,3 @@
     <PostBuildEvent />
   </PropertyGroup>
 </Project>
-
