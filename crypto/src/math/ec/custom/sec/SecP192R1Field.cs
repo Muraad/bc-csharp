@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Array.Copy(x, 0, z, 0, 6);
+            Nat192.Copy(x, z);
             uint c = Nat192.Inc(z, 0);
             if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
@@ -126,6 +126,15 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
 
             if (z[5] == P5 && Nat192.Gte(z, P))
+            {
+                Nat192.Sub(z, P, z);
+            }
+        }
+
+        public static void Reduce32(uint x, uint[] z)
+        {
+            uint c = Nat192.AddWord(x, z, 0) + Nat192.AddWord(x, z, 2);
+            if (c != 0 || (z[5] == P5 && Nat192.Gte(z, P)))
             {
                 Nat192.Sub(z, P, z);
             }

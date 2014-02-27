@@ -8,6 +8,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         // 2^256 - 2^224 + 2^192 + 2^96 - 1
         internal static readonly uint[] P = new uint[]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000,
             0x00000001, 0xFFFFFFFF };
+        private static readonly uint[] _2P = new uint[]{ 0xFFFFFFFE, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000001, 0x00000000, 0x00000000,
+            0x00000002, 0xFFFFFFFE, 0x00000001 };
         private const uint P7 = 0xFFFFFFFF;
         private static readonly uint[] PExt = new uint[]{ 0x00000001, 0x00000000, 0x00000000, 0xFFFFFFFE, 0xFFFFFFFF,
             0xFFFFFFFF, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0xFFFFFFFE, 0x00000001, 0x00000001, 0xFFFFFFFE,
@@ -33,7 +35,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Array.Copy(x, 0, z, 0, 8);
+            Nat256.Copy(x, z);
             uint c = Nat256.Inc(z, 0);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
@@ -123,25 +125,56 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             cc >>= 32;
 
             int c = (int)cc;
-            if (c < 0)
+            if (c > 0)
             {
-                do
-                {
-                    c += (int)Nat256.Add(z, P, z);
-                }
-                while (c < 0);
+                Reduce32((uint)c, z);
             }
             else
             {
-                while (c > 0)
+                while (c < -1)
                 {
-                    c += Nat256.Sub(z, P, z);
+                    c += (int)Nat256.Add(z, _2P, z) + 1;
                 }
+                while (c < 0)
+                {
+                    c += (int)Nat256.Add(z, P, z);
+                }
+            }
+        }
 
-                if (z[7] == P7 && Nat256.Gte(z, P))
-                {
-                    Nat256.Sub(z, P, z);
-                }
+        public static void Reduce32(uint x, uint[] z)
+        {
+            long xx08 = x;
+
+            long cc = 0;
+            cc += (long)z[0] + xx08;
+            z[0] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[1];
+            z[1] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[2];
+            z[2] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[3] - xx08;
+            z[3] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[4];
+            z[4] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[5];
+            z[5] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[6] - xx08;
+            z[6] = (uint)cc;
+            cc >>= 32;
+            cc += (long)z[7] + xx08;
+            z[7] = (uint)cc;
+            cc >>= 32;
+
+            if (cc != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
+            {
+                Nat256.Sub(z, P, z);
             }
         }
 

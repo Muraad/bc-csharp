@@ -1,0 +1,3798 @@
+? csharp/crypto/Properties
+? csharp/crypto/bin
+? csharp/crypto/crypto.portable.csproj
+? csharp/crypto/crypto.portable.csproj.user
+? csharp/crypto/crypto.portable.sln.DotSettings
+? csharp/crypto/crypto.portable.v11.suo
+? csharp/crypto/obj
+Index: csharp/crypto/bzip2/src/CBZip2InputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/bzip2/src/CBZip2InputStream.cs,v
+retrieving revision 1.4
+diff -u -a -r1.4 CBZip2InputStream.cs
+--- csharp/crypto/bzip2/src/CBZip2InputStream.cs	23 May 2010 15:44:56 -0000	1.4
++++ csharp/crypto/bzip2/src/CBZip2InputStream.cs	19 Jan 2013 23:42:32 -0000
+@@ -289,7 +289,11 @@
+ 		private void BsFinishedWithStream() {
+             try {
+                 if (this.bsStream != null) {
++#if PORTABLE
++                    this.bsStream.Dispose();
++#else
+                     this.bsStream.Close();
++#endif
+                     this.bsStream = null;
+                 }
+             } catch {
+Index: csharp/crypto/bzip2/src/CBZip2OutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/bzip2/src/CBZip2OutputStream.cs,v
+retrieving revision 1.4
+diff -u -a -r1.4 CBZip2OutputStream.cs
+--- csharp/crypto/bzip2/src/CBZip2OutputStream.cs	11 Dec 2009 03:43:14 -0000	1.4
++++ csharp/crypto/bzip2/src/CBZip2OutputStream.cs	19 Jan 2013 23:42:33 -0000
+@@ -384,7 +384,12 @@
+ //            Close();
+ //        }
+ 
++#if PORTABLE
++        public virtual void Close()
++        {
++#else
+         public override void Close() {
++#endif
+             if (closed) {
+                 return;
+             }
+@@ -392,8 +397,13 @@
+             Finish();
+ 
+             closed = true;
++#if PORTABLE
++            base.Dispose();
++            bsStream.Dispose();
++#else
+             base.Close();
+             bsStream.Close();
++#endif
+         }
+ 
+         public void Finish() {
+Index: csharp/crypto/src/AssemblyInfo.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/AssemblyInfo.cs,v
+retrieving revision 1.13
+diff -u -a -r1.13 AssemblyInfo.cs
+--- csharp/crypto/src/AssemblyInfo.cs	6 Apr 2011 16:26:55 -0000	1.13
++++ csharp/crypto/src/AssemblyInfo.cs	19 Jan 2013 23:42:33 -0000
+@@ -70,7 +70,9 @@
+ [assembly: AssemblyKeyName("")]
+ 
+ [assembly: CLSCompliant(true)]
++#if !PORTABLE
+ [assembly: ComVisible(false)]
++#endif
+ 
+ // Start with no permissions
+ //[assembly: PermissionSet(SecurityAction.RequestOptional, Unrestricted=false)]
+Index: csharp/crypto/src/asn1/DerGeneralizedTime.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/DerGeneralizedTime.cs,v
+retrieving revision 1.15
+diff -u -a -r1.15 DerGeneralizedTime.cs
+--- csharp/crypto/src/asn1/DerGeneralizedTime.cs	6 Apr 2011 15:39:03 -0000	1.15
++++ csharp/crypto/src/asn1/DerGeneralizedTime.cs	19 Jan 2013 23:42:34 -0000
+@@ -159,8 +159,8 @@
+ 			char sign = '+';
+             DateTime time = ToDateTime();
+ 
+-#if SILVERLIGHT
+-			long offset = time.Ticks - time.ToUniversalTime().Ticks;
++#if (SILVERLIGHT || PORTABLE)
++            long offset = time.Ticks - time.ToUniversalTime().Ticks;
+ 			if (offset < 0)
+ 			{
+ 				sign = '-';
+Index: csharp/crypto/src/asn1/cms/AttributeTable.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/cms/AttributeTable.cs,v
+retrieving revision 1.19
+diff -u -a -r1.19 AttributeTable.cs
+--- csharp/crypto/src/asn1/cms/AttributeTable.cs	25 Feb 2011 04:36:31 -0000	1.19
++++ csharp/crypto/src/asn1/cms/AttributeTable.cs	19 Jan 2013 23:42:34 -0000
+@@ -10,7 +10,7 @@
+     {
+         private readonly IDictionary attributes;
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public AttributeTable(
+             Hashtable attrs)
+@@ -168,7 +168,7 @@
+             return Platform.CreateHashtable(attributes);
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete("Use 'ToDictionary' instead")]
+ 		public Hashtable ToHashtable()
+         {
+Index: csharp/crypto/src/asn1/nist/NISTNamedCurves.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/nist/NISTNamedCurves.cs,v
+retrieving revision 1.13
+diff -u -a -r1.13 NISTNamedCurves.cs
+--- csharp/crypto/src/asn1/nist/NISTNamedCurves.cs	19 Sep 2010 07:34:49 -0000	1.13
++++ csharp/crypto/src/asn1/nist/NISTNamedCurves.cs	19 Jan 2013 23:42:34 -0000
+@@ -20,7 +20,7 @@
+ 		}
+ 
+ 		private static readonly IDictionary objIds = Platform.CreateHashtable();
+-        private static readonly IDictionary names = Platform.CreateHashtable();
++		private static readonly IDictionary names = Platform.CreateHashtable();
+ 
+ 		private static void DefineCurve(
+ 			string				name,
+@@ -47,7 +47,11 @@
+ 		public static X9ECParameters GetByName(
+ 			string name)
+ 		{
++#if PORTABLE
++			DerObjectIdentifier oid = (DerObjectIdentifier)objIds[name.ToUpperInvariant()];
++#else
+ 			DerObjectIdentifier oid = (DerObjectIdentifier) objIds[name.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			if (oid != null)
+ 			{
+@@ -78,7 +82,11 @@
+ 		public static DerObjectIdentifier GetOid(
+ 			string name)
+ 		{
++#if PORTABLE
++			return (DerObjectIdentifier)objIds[name.ToUpperInvariant()];
++#else
+ 			return (DerObjectIdentifier) objIds[name.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 		}
+ 
+ 		/**
+Index: csharp/crypto/src/asn1/sec/SECNamedCurves.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/sec/SECNamedCurves.cs,v
+retrieving revision 1.20
+diff -u -a -r1.20 SECNamedCurves.cs
+--- csharp/crypto/src/asn1/sec/SECNamedCurves.cs	19 Sep 2010 07:34:49 -0000	1.20
++++ csharp/crypto/src/asn1/sec/SECNamedCurves.cs	19 Jan 2013 23:42:35 -0000
+@@ -1085,8 +1085,8 @@
+ 
+ 
+ 		private static readonly IDictionary objIds = Platform.CreateHashtable();
+-        private static readonly IDictionary curves = Platform.CreateHashtable();
+-        private static readonly IDictionary names = Platform.CreateHashtable();
++		private static readonly IDictionary curves = Platform.CreateHashtable();
++		private static readonly IDictionary names = Platform.CreateHashtable();
+ 
+ 		private static void DefineCurve(
+ 			string					name,
+@@ -1139,8 +1139,13 @@
+ 		public static X9ECParameters GetByName(
+ 			string name)
+ 		{
++#if PORTABLE
++			DerObjectIdentifier oid = (DerObjectIdentifier)
++				objIds[name.ToLowerInvariant()];
++#else
+ 			DerObjectIdentifier oid = (DerObjectIdentifier)
+ 				objIds[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			return oid == null ? null : GetByOid(oid);
+ 		}
+@@ -1168,7 +1173,11 @@
+ 		public static DerObjectIdentifier GetOid(
+ 			string name)
+ 		{
++#if PORTABLE
++			return (DerObjectIdentifier) objIds[name.ToLowerInvariant()];
++#else
+ 			return (DerObjectIdentifier) objIds[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
+ 		}
+ 
+ 		/**
+Index: csharp/crypto/src/asn1/smime/SMIMECapabilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/smime/SMIMECapabilities.cs,v
+retrieving revision 1.24
+diff -u -a -r1.24 SMIMECapabilities.cs
+--- csharp/crypto/src/asn1/smime/SMIMECapabilities.cs	19 Sep 2010 07:34:49 -0000	1.24
++++ csharp/crypto/src/asn1/smime/SMIMECapabilities.cs	19 Jan 2013 23:42:35 -0000
+@@ -65,7 +65,7 @@
+             capabilities = seq;
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete("Use 'GetCapabilitiesForOid' instead")]
+         public ArrayList GetCapabilities(
+             DerObjectIdentifier capability)
+Index: csharp/crypto/src/asn1/teletrust/TeleTrusTNamedCurves.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/teletrust/TeleTrusTNamedCurves.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 TeleTrusTNamedCurves.cs
+--- csharp/crypto/src/asn1/teletrust/TeleTrusTNamedCurves.cs	19 Sep 2010 07:34:49 -0000	1.5
++++ csharp/crypto/src/asn1/teletrust/TeleTrusTNamedCurves.cs	19 Jan 2013 23:42:36 -0000
+@@ -367,10 +367,15 @@
+ 		public static X9ECParameters GetByName(
+ 			string name)
+ 		{
+-			DerObjectIdentifier oid = (DerObjectIdentifier)
++#if PORTABLE
++            DerObjectIdentifier oid = (DerObjectIdentifier)
++                objIds[name.ToLowerInvariant()];
++#else
++            DerObjectIdentifier oid = (DerObjectIdentifier)
+ 				objIds[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
+ 
+-			return oid == null ? null : GetByOid(oid);
++            return oid == null ? null : GetByOid(oid);
+ 		}
+ 
+ 		/**
+@@ -395,9 +400,13 @@
+ 		*/
+ 		public static DerObjectIdentifier GetOid(
+ 			string name)
+-		{
+-			return (DerObjectIdentifier) objIds[name.ToLower(CultureInfo.InvariantCulture)];
+-		}
++        {
++#if PORTABLE
++            return (DerObjectIdentifier)objIds[name.ToLowerInvariant()];
++#else
++            return (DerObjectIdentifier) objIds[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
++        }
+ 
+ 		/**
+ 		* return the named curve name represented by the given object identifier.
+Index: csharp/crypto/src/asn1/util/Dump.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/util/Dump.cs,v
+retrieving revision 1.15
+diff -u -a -r1.15 Dump.cs
+--- csharp/crypto/src/asn1/util/Dump.cs	8 Nov 2007 14:53:39 -0000	1.15
++++ csharp/crypto/src/asn1/util/Dump.cs	19 Jan 2013 23:42:36 -0000
+@@ -1,3 +1,4 @@
++#if !PORTABLE
+ using Org.BouncyCastle.Asn1;
+ 
+ using System;
+@@ -26,3 +27,4 @@
+         }
+     }
+ }
++#endif
+\ No newline at end of file
+Index: csharp/crypto/src/asn1/util/FilterStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/util/FilterStream.cs,v
+retrieving revision 1.9
+diff -u -a -r1.9 FilterStream.cs
+--- csharp/crypto/src/asn1/util/FilterStream.cs	19 Feb 2011 07:55:25 -0000	1.9
++++ csharp/crypto/src/asn1/util/FilterStream.cs	19 Jan 2013 23:42:36 -0000
+@@ -30,10 +30,18 @@
+             get { return s.Position; }
+             set { s.Position = value; }
+         }
++#if PORTABLE
++        public virtual void Close()
++        {
++            s.Dispose();
++        }
++#else
+         public override void Close()
+         {
+             s.Close();
+         }
++#endif
++
+         public override void Flush()
+         {
+             s.Flush();
+Index: csharp/crypto/src/asn1/x509/AttributeTable.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/AttributeTable.cs,v
+retrieving revision 1.21
+diff -u -a -r1.21 AttributeTable.cs
+--- csharp/crypto/src/asn1/x509/AttributeTable.cs	19 Sep 2010 07:34:49 -0000	1.21
++++ csharp/crypto/src/asn1/x509/AttributeTable.cs	19 Jan 2013 23:42:36 -0000
+@@ -16,7 +16,7 @@
+             this.attributes = Platform.CreateHashtable(attrs);
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public AttributeTable(
+             Hashtable attrs)
+@@ -25,7 +25,7 @@
+         }
+ #endif
+ 
+-		public AttributeTable(
++        public AttributeTable(
+             Asn1EncodableVector v)
+         {
+             this.attributes = Platform.CreateHashtable(v.Count);
+@@ -57,7 +57,7 @@
+             return (AttributeX509) attributes[oid];
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete("Use 'ToDictionary' instead")]
+ 		public Hashtable ToHashtable()
+         {
+Index: csharp/crypto/src/asn1/x509/ExtendedKeyUsage.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/ExtendedKeyUsage.cs,v
+retrieving revision 1.22
+diff -u -a -r1.22 ExtendedKeyUsage.cs
+--- csharp/crypto/src/asn1/x509/ExtendedKeyUsage.cs	19 Sep 2010 07:34:49 -0000	1.22
++++ csharp/crypto/src/asn1/x509/ExtendedKeyUsage.cs	19 Jan 2013 23:42:36 -0000
+@@ -70,7 +70,7 @@
+ 			}
+ 		}
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public ExtendedKeyUsage(
+             ArrayList usages)
+@@ -100,7 +100,7 @@
+             return usageTable[keyPurposeId] != null;
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete("Use 'GetAllUsages'")]
+         public ArrayList GetUsages()
+         {
+Index: csharp/crypto/src/asn1/x509/NameConstraints.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/NameConstraints.cs,v
+retrieving revision 1.22
+diff -u -a -r1.22 NameConstraints.cs
+--- csharp/crypto/src/asn1/x509/NameConstraints.cs	19 Sep 2010 07:34:49 -0000	1.22
++++ csharp/crypto/src/asn1/x509/NameConstraints.cs	19 Jan 2013 23:42:36 -0000
+@@ -41,7 +41,7 @@
+ 			}
+ 		}
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         public NameConstraints(
+             ArrayList permitted,
+             ArrayList excluded)
+Index: csharp/crypto/src/asn1/x509/NoticeReference.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/NoticeReference.cs,v
+retrieving revision 1.22
+diff -u -a -r1.22 NoticeReference.cs
+--- csharp/crypto/src/asn1/x509/NoticeReference.cs	19 Sep 2010 07:34:49 -0000	1.22
++++ csharp/crypto/src/asn1/x509/NoticeReference.cs	19 Jan 2013 23:42:36 -0000
+@@ -24,7 +24,7 @@
+ 		internal readonly DisplayText organization;
+ 		internal readonly Asn1Sequence noticeNumbers;
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public NoticeReference(
+             string orgName,
+Index: csharp/crypto/src/asn1/x509/PolicyMappings.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/PolicyMappings.cs,v
+retrieving revision 1.15
+diff -u -a -r1.15 PolicyMappings.cs
+--- csharp/crypto/src/asn1/x509/PolicyMappings.cs	19 Sep 2010 07:34:49 -0000	1.15
++++ csharp/crypto/src/asn1/x509/PolicyMappings.cs	19 Jan 2013 23:42:36 -0000
+@@ -29,7 +29,7 @@
+ 			this.seq = seq;
+ 		}
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         public PolicyMappings(
+             Hashtable mappings)
+             : this((IDictionary)mappings)
+Index: csharp/crypto/src/asn1/x509/SubjectDirectoryAttributes.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/SubjectDirectoryAttributes.cs,v
+retrieving revision 1.12
+diff -u -a -r1.12 SubjectDirectoryAttributes.cs
+--- csharp/crypto/src/asn1/x509/SubjectDirectoryAttributes.cs	18 Nov 2011 10:41:09 -0000	1.12
++++ csharp/crypto/src/asn1/x509/SubjectDirectoryAttributes.cs	19 Jan 2013 23:42:36 -0000
+@@ -78,7 +78,7 @@
+ 			}
+ 		}
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public SubjectDirectoryAttributes(
+             ArrayList attributes)
+Index: csharp/crypto/src/asn1/x509/X509Extensions.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/X509Extensions.cs,v
+retrieving revision 1.44
+diff -u -a -r1.44 X509Extensions.cs
+--- csharp/crypto/src/asn1/x509/X509Extensions.cs	1 Feb 2011 06:43:34 -0000	1.44
++++ csharp/crypto/src/asn1/x509/X509Extensions.cs	19 Jan 2013 23:42:36 -0000
+@@ -278,7 +278,7 @@
+             }
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+ 		/**
+          * constructor from a table of extensions.
+          * <p>
+Index: csharp/crypto/src/asn1/x509/X509Name.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x509/X509Name.cs,v
+retrieving revision 1.71
+diff -u -a -r1.71 X509Name.cs
+--- csharp/crypto/src/asn1/x509/X509Name.cs	2 Feb 2011 04:14:58 -0000	1.71
++++ csharp/crypto/src/asn1/x509/X509Name.cs	19 Jan 2013 23:42:37 -0000
+@@ -4,7 +4,7 @@
+ using System.IO;
+ using System.Text;
+ 
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+ using System.Collections.Generic;
+ #endif
+ 
+@@ -204,8 +204,8 @@
+ 
+ 		private static readonly bool[] defaultReverse = { false };
+ 
+-#if SILVERLIGHT
+-		/**
++#if SILVERLIGHT || PORTABLE
++        /**
+ 		* default look up table translating OID values into their common symbols following
+ 		* the convention in RFC 2253 with a few extras
+ 		*/
+@@ -417,7 +417,7 @@
+             }
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public X509Name(
+             ArrayList ordering,
+@@ -442,7 +442,7 @@
+         {
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public X509Name(
+             ArrayList				ordering,
+@@ -453,7 +453,7 @@
+         }
+ #endif
+ 
+-		/**
++        /**
+         * Constructor from a table of attributes with ordering.
+         * <p>
+         * it's is assumed the table contains OID/string pairs, and the contents
+@@ -485,7 +485,7 @@
+ 			}
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public X509Name(
+             ArrayList oids,
+@@ -495,7 +495,7 @@
+         }
+ #endif
+ 
+-		/**
++        /**
+         * Takes two vectors one of the oids and the other of the values.
+         */
+         public X509Name(
+@@ -505,7 +505,7 @@
+         {
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public X509Name(
+             ArrayList				oids,
+@@ -516,7 +516,7 @@
+         }
+ #endif
+ 
+-		/**
++        /**
+         * Takes two vectors one of the oids and the other of the values.
+         * <p>
+         * The passed in converter will be used to convert the strings into their
+@@ -599,7 +599,7 @@
+         {
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public X509Name(
+             bool reverse,
+@@ -610,7 +610,7 @@
+         }
+ #endif
+ 
+-		/**
++        /**
+         * Takes an X509 dir name as a string of the format "C=AU, ST=Victoria", or
+         * some such, converting it into an ordered set of name attributes. lookUp
+         * should provide a table of lookups, indexed by lowercase only strings and
+@@ -635,7 +635,11 @@
+             string		name,
+             IDictionary lookUp)
+         {
++#if PORTABLE
++            if (name.ToUpperInvariant().StartsWith("OID."))
++#else
+             if (name.ToUpper(CultureInfo.InvariantCulture).StartsWith("OID."))
++#endif
+             {
+                 return new DerObjectIdentifier(name.Substring(4));
+             }
+@@ -644,7 +648,11 @@
+                 return new DerObjectIdentifier(name);
+             }
+ 
++#if PORTABLE
++            DerObjectIdentifier oid = (DerObjectIdentifier)lookUp[name.ToLowerInvariant()];
++#else
+ 			DerObjectIdentifier oid = (DerObjectIdentifier)lookUp[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
+             if (oid == null)
+             {
+                 throw new ArgumentException("Unknown object id - " + name + " - passed to distinguished name");
+@@ -748,7 +756,7 @@
+ 			}
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+ 		/**
+ 		* return an ArrayList of the oids in the name, in the order they were found.
+ 		*/
+@@ -767,7 +775,7 @@
+             return Platform.CreateArrayList(ordering);
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+ 		/**
+ 		* return an ArrayList of the values found in the name, in the order they
+ 		* were found.
+@@ -788,7 +796,7 @@
+             return Platform.CreateArrayList(values);
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+ 		/**
+ 		 * return an ArrayList of the values found in the name, in the order they
+ 		 * were found, with the DN label corresponding to passed in oid.
+@@ -802,7 +810,7 @@
+ 		}
+ #endif
+ 
+-		/**
++        /**
+ 		 * return an IList of the values found in the name, in the order they
+ 		 * were found, with the DN label corresponding to passed in oid.
+ 		 */
+@@ -1005,16 +1013,24 @@
+ 		private static string canonicalize(
+ 			string s)
+ 		{
++#if PORTABLE
++            string v = s.ToLowerInvariant().Trim();
++#else
+ 			string v = s.ToLower(CultureInfo.InvariantCulture).Trim();
++#endif
+ 
+-			if (v.StartsWith("#"))
++            if (v.StartsWith("#"))
+ 			{
+ 				Asn1Object obj = decodeObject(v);
+ 
+ 				if (obj is IAsn1String)
+-				{
+-					v = ((IAsn1String)obj).GetString().ToLower(CultureInfo.InvariantCulture).Trim();
+-				}
++                {
++#if PORTABLE
++                    v = ((IAsn1String)obj).GetString().ToLowerInvariant().Trim();
++#else
++                    v = ((IAsn1String)obj).GetString().ToLower(CultureInfo.InvariantCulture).Trim();
++#endif
++                }
+ 			}
+ 
+ 			return v;
+@@ -1107,7 +1123,7 @@
+             }
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public string ToString(
+             bool        reverse,
+@@ -1133,7 +1149,7 @@
+             bool		reverse,
+             IDictionary oidSymbols)
+         {
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+             List<object> components = new List<object>();
+ #else
+ 			ArrayList components = new ArrayList();
+Index: csharp/crypto/src/asn1/x9/X962NamedCurves.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/asn1/x9/X962NamedCurves.cs,v
+retrieving revision 1.24
+diff -u -a -r1.24 X962NamedCurves.cs
+--- csharp/crypto/src/asn1/x9/X962NamedCurves.cs	19 Sep 2010 07:34:49 -0000	1.24
++++ csharp/crypto/src/asn1/x9/X962NamedCurves.cs	19 Jan 2013 23:42:37 -0000
+@@ -681,9 +681,13 @@
+ 		public static X9ECParameters GetByName(
+ 			string name)
+ 		{
++#if PORTABLE
++            DerObjectIdentifier oid = (DerObjectIdentifier)objIds[name.ToLowerInvariant()];
++#else
+ 			DerObjectIdentifier oid = (DerObjectIdentifier) objIds[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
+ 
+-			return oid == null ? null : GetByOid(oid);
++            return oid == null ? null : GetByOid(oid);
+ 		}
+ 
+ 		/**
+@@ -708,9 +712,13 @@
+ 		 */
+ 		public static DerObjectIdentifier GetOid(
+ 			string name)
+-		{
+-			return (DerObjectIdentifier) objIds[name.ToLower(CultureInfo.InvariantCulture)];
+-		}
++        {
++#if PORTABLE
++            return (DerObjectIdentifier)objIds[name.ToLowerInvariant()];
++#else
++            return (DerObjectIdentifier) objIds[name.ToLower(CultureInfo.InvariantCulture)];
++#endif
++        }
+ 
+ 		/**
+ 		 * return the named curve name represented by the given object identifier.
+Index: csharp/crypto/src/bcpg/ArmoredInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/bcpg/ArmoredInputStream.cs,v
+retrieving revision 1.30
+diff -u -a -r1.30 ArmoredInputStream.cs
+--- csharp/crypto/src/bcpg/ArmoredInputStream.cs	19 Sep 2010 07:34:49 -0000	1.30
++++ csharp/crypto/src/bcpg/ArmoredInputStream.cs	19 Jan 2013 23:42:37 -0000
+@@ -506,8 +506,12 @@
+ 
+ 		public override void Close()
+ 		{
++#if PORTABLE
++            input.Dispose();
++#else
+ 			input.Close();
+-			base.Close();
++#endif
++            base.Close();
+ 		}
+     }
+ }
+Index: csharp/crypto/src/bcpg/ArmoredOutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/bcpg/ArmoredOutputStream.cs,v
+retrieving revision 1.35
+diff -u -a -r1.35 ArmoredOutputStream.cs
+--- csharp/crypto/src/bcpg/ArmoredOutputStream.cs	2 Feb 2011 04:14:58 -0000	1.35
++++ csharp/crypto/src/bcpg/ArmoredOutputStream.cs	19 Jan 2013 23:42:37 -0000
+@@ -5,6 +5,10 @@
+ using System.Reflection;
+ using System.Text;
+ 
++#if PORTABLE
++using System.Linq;
++#endif
++
+ using Org.BouncyCastle.Utilities;
+ using Org.BouncyCastle.Utilities.IO;
+ 
+@@ -98,7 +102,16 @@
+         private static readonly string	footerTail = "-----";
+ 
+         private static readonly string version = "BCPG C# v"
++#if PORTABLE
++            +
++            Assembly.GetExecutingAssembly()
++                    .GetCustomAttributes(typeof (AssemblyVersionAttribute), true)
++                    .Cast<AssemblyVersionAttribute>()
++                    .First()
++                    .Version;
++#else
+ 			+ Assembly.GetExecutingAssembly().GetName().Version;
++#endif
+ 
+ 		private readonly IDictionary headers;
+ 
+Index: csharp/crypto/src/bcpg/BcpgInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/bcpg/BcpgInputStream.cs,v
+retrieving revision 1.11
+diff -u -a -r1.11 BcpgInputStream.cs
+--- csharp/crypto/src/bcpg/BcpgInputStream.cs	19 Feb 2008 11:32:01 -0000	1.11
++++ csharp/crypto/src/bcpg/BcpgInputStream.cs	19 Jan 2013 23:42:37 -0000
+@@ -252,8 +252,12 @@
+ 
+ 		public override void Close()
+ 		{
++#if PORTABLE
++            m_in.Dispose();
++#else
+ 			m_in.Close();
+-			base.Close();
++#endif
++            base.Close();
+ 		}
+ 
+ 		/// <summary>
+Index: csharp/crypto/src/bcpg/BcpgOutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/bcpg/BcpgOutputStream.cs,v
+retrieving revision 1.11
+diff -u -a -r1.11 BcpgOutputStream.cs
+--- csharp/crypto/src/bcpg/BcpgOutputStream.cs	9 May 2008 14:41:00 -0000	1.11
++++ csharp/crypto/src/bcpg/BcpgOutputStream.cs	19 Jan 2013 23:42:37 -0000
+@@ -383,8 +383,12 @@
+         {
+ 			this.Finish();
+ 			outStr.Flush();
++#if PORTABLE
++            outStr.Dispose();
++#else
+ 			outStr.Close();
+-			base.Close();
++#endif
++            base.Close();
+         }
+     }
+ }
+Index: csharp/crypto/src/cms/CMSAuthenticatedDataGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSAuthenticatedDataGenerator.cs,v
+retrieving revision 1.6
+diff -u -a -r1.6 CMSAuthenticatedDataGenerator.cs
+--- csharp/crypto/src/cms/CMSAuthenticatedDataGenerator.cs	18 Feb 2011 06:04:32 -0000	1.6
++++ csharp/crypto/src/cms/CMSAuthenticatedDataGenerator.cs	19 Jan 2013 23:42:38 -0000
+@@ -83,10 +83,15 @@
+ 
+ 				content.Write(mOut);
+ 
+-				mOut.Close();
++#if PORTABLE
++                mOut.Dispose();
++                bOut.Dispose();
++#else
++                mOut.Close();
+ 				bOut.Close();
++#endif
+ 
+-				encContent = new BerOctetString(bOut.ToArray());
++                encContent = new BerOctetString(bOut.ToArray());
+ 
+ 				byte[] macOctets = MacUtilities.DoFinal(mac);
+ 				macResult = new DerOctetString(macOctets);
+Index: csharp/crypto/src/cms/CMSAuthenticatedDataStreamGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSAuthenticatedDataStreamGenerator.cs,v
+retrieving revision 1.9
+diff -u -a -r1.9 CMSAuthenticatedDataStreamGenerator.cs
+--- csharp/crypto/src/cms/CMSAuthenticatedDataStreamGenerator.cs	18 Feb 2011 06:04:32 -0000	1.9
++++ csharp/crypto/src/cms/CMSAuthenticatedDataStreamGenerator.cs	19 Jan 2013 23:42:38 -0000
+@@ -166,7 +166,7 @@
+ 
+ 				IMac mac = MacUtilities.GetMac(macAlgId.ObjectID);
+ 				// TODO Confirm no ParametersWithRandom needed
+-	            mac.Init(cipherParameters);
++				mac.Init(cipherParameters);
+ 				Stream mOut = new TeeOutputStream(octetOutputStream, new MacOutputStream(mac));
+ 
+ 				return new CmsAuthenticatedDataOutputStream(mOut, mac, cGen, authGen, eiGen);
+@@ -253,7 +253,11 @@
+ 
+ 			public override void Close()
+ 			{
++#if PORTABLE
++				macStream.Dispose();
++#else
+ 				macStream.Close();
++#endif
+ 
+ 				// TODO Parent context(s) should really be be closed explicitly
+ 
+Index: csharp/crypto/src/cms/CMSContentInfoParser.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSContentInfoParser.cs,v
+retrieving revision 1.11
+diff -u -a -r1.11 CMSContentInfoParser.cs
+--- csharp/crypto/src/cms/CMSContentInfoParser.cs	22 Feb 2011 03:41:15 -0000	1.11
++++ csharp/crypto/src/cms/CMSContentInfoParser.cs	19 Jan 2013 23:42:38 -0000
+@@ -41,7 +41,11 @@
+ 		*/
+ 		public void Close()
+ 		{
++#if PORTABLE
++			this.data.Dispose();
++#else
+ 			this.data.Close();
++#endif
+ 		}
+ 	}
+ }
+Index: csharp/crypto/src/cms/CMSProcessableFile.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSProcessableFile.cs,v
+retrieving revision 1.9
+diff -u -a -r1.9 CMSProcessableFile.cs
+--- csharp/crypto/src/cms/CMSProcessableFile.cs	2 Sep 2011 05:07:48 -0000	1.9
++++ csharp/crypto/src/cms/CMSProcessableFile.cs	19 Jan 2013 23:42:38 -0000
+@@ -1,3 +1,4 @@
++#if !PORTABLE
+ using System;
+ using System.IO;
+ 
+@@ -52,3 +53,4 @@
+ 		}
+ 	}
+ }
++#endif
+\ No newline at end of file
+Index: csharp/crypto/src/cms/CMSProcessableInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSProcessableInputStream.cs,v
+retrieving revision 1.3
+diff -u -a -r1.3 CMSProcessableInputStream.cs
+--- csharp/crypto/src/cms/CMSProcessableInputStream.cs	2 Sep 2011 05:07:48 -0000	1.3
++++ csharp/crypto/src/cms/CMSProcessableInputStream.cs	19 Jan 2013 23:42:38 -0000
+@@ -29,7 +29,11 @@
+ 			CheckSingleUsage();
+ 
+ 			Streams.PipeAll(input, output);
++#if PORTABLE
++			input.Dispose();
++#else
+ 			input.Close();
++#endif
+ 		}
+ 
+ 		[Obsolete]
+Index: csharp/crypto/src/cms/CMSSignedDataGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSSignedDataGenerator.cs,v
+retrieving revision 1.40
+diff -u -a -r1.40 CMSSignedDataGenerator.cs
+--- csharp/crypto/src/cms/CMSSignedDataGenerator.cs	21 Feb 2011 07:36:51 -0000	1.40
++++ csharp/crypto/src/cms/CMSSignedDataGenerator.cs	19 Jan 2013 23:42:38 -0000
+@@ -108,8 +108,8 @@
+ 				outer._digests.Add(digestOID, hash.Clone());
+ 
+ 				sig.Init(true, new ParametersWithRandom(key, random));
+-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+-				Stream sigStr = new SigOutputStream(sig);
++#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
++                Stream sigStr = new SigOutputStream(sig);
+ #else
+ 				Stream sigStr = new BufferedStream(new SigOutputStream(sig));
+ #endif
+@@ -145,8 +145,12 @@
+ 					content.Write(sigStr);
+                 }
+ 
++#if PORTABLE
++                sigStr.Dispose();
++#else
+ 				sigStr.Close();
+-				byte[] sigBytes = sig.GenerateSignature();
++#endif
++                byte[] sigBytes = sig.GenerateSignature();
+ 
+ 				Asn1Set unsignedAttr = null;
+ 				if (unsAttr != null)
+Index: csharp/crypto/src/cms/CMSSignedDataParser.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSSignedDataParser.cs,v
+retrieving revision 1.28
+diff -u -a -r1.28 CMSSignedDataParser.cs
+--- csharp/crypto/src/cms/CMSSignedDataParser.cs	19 Sep 2010 07:34:50 -0000	1.28
++++ csharp/crypto/src/cms/CMSSignedDataParser.cs	19 Jan 2013 23:42:38 -0000
+@@ -203,8 +203,8 @@
+ 			{
+ 				PopulateCertCrlSets();
+ 
+-                IList signerInfos = Platform.CreateArrayList();
+-                IDictionary hashes = Platform.CreateHashtable();
++				IList signerInfos = Platform.CreateArrayList();
++				IDictionary hashes = Platform.CreateHashtable();
+ 
+ 				foreach (object digestKey in _digests.Keys)
+ 				{
+@@ -389,7 +389,11 @@
+ 
+ //			gen.AddSigners(parser.GetSignerInfos());
+ 
++#if PORTABLE
++			contentOut.Dispose();
++#else
+ 			contentOut.Close();
++#endif
+ 
+ 			return outStr;
+ 		}
+@@ -439,7 +443,11 @@
+ 
+ 			gen.AddSigners(parser.GetSignerInfos());
+ 
++#if PORTABLE
++			contentOut.Dispose();
++#else
+ 			contentOut.Close();
++#endif
+ 
+ 			return outStr;
+ 		}
+Index: csharp/crypto/src/cms/CMSSignedDataStreamGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSSignedDataStreamGenerator.cs,v
+retrieving revision 1.42
+diff -u -a -r1.42 CMSSignedDataStreamGenerator.cs
+--- csharp/crypto/src/cms/CMSSignedDataStreamGenerator.cs	21 Feb 2011 07:36:51 -0000	1.42
++++ csharp/crypto/src/cms/CMSSignedDataStreamGenerator.cs	19 Jan 2013 23:42:38 -0000
+@@ -18,37 +18,37 @@
+ 
+ namespace Org.BouncyCastle.Cms
+ {
+-    /**
+-    * General class for generating a pkcs7-signature message stream.
+-    * <p>
+-    * A simple example of usage.
+-    * </p>
+-    * <pre>
+-    *      IX509Store                   certs...
+-    *      CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+-    *
+-    *      gen.AddSigner(privateKey, cert, CmsSignedDataStreamGenerator.DIGEST_SHA1);
+-    *
+-    *      gen.AddCertificates(certs);
+-    *
+-    *      Stream sigOut = gen.Open(bOut);
+-    *
+-    *      sigOut.Write(Encoding.UTF8.GetBytes("Hello World!"));
+-    *
+-    *      sigOut.Close();
+-    * </pre>
+-    */
+-    public class CmsSignedDataStreamGenerator
+-        : CmsSignedGenerator
+-    {
++	/**
++	* General class for generating a pkcs7-signature message stream.
++	* <p>
++	* A simple example of usage.
++	* </p>
++	* <pre>
++	*      IX509Store                   certs...
++	*      CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
++	*
++	*      gen.AddSigner(privateKey, cert, CmsSignedDataStreamGenerator.DIGEST_SHA1);
++	*
++	*      gen.AddCertificates(certs);
++	*
++	*      Stream sigOut = gen.Open(bOut);
++	*
++	*      sigOut.Write(Encoding.UTF8.GetBytes("Hello World!"));
++	*
++	*      sigOut.Close();
++	* </pre>
++	*/
++	public class CmsSignedDataStreamGenerator
++		: CmsSignedGenerator
++	{
+ 		private static readonly CmsSignedHelper Helper = CmsSignedHelper.Instance;
+ 
+ 		private readonly IList      _signerInfs = Platform.CreateArrayList();
+ 		private readonly ISet		_messageDigestOids = new HashSet();
+-        private readonly IDictionary _messageDigests = Platform.CreateHashtable();
+-        private readonly IDictionary _messageHashes = Platform.CreateHashtable();
++		private readonly IDictionary _messageDigests = Platform.CreateHashtable();
++		private readonly IDictionary _messageHashes = Platform.CreateHashtable();
+ 		private bool				_messageDigestsLocked;
+-        private int					_bufferSize;
++		private int					_bufferSize;
+ 
+ 		private class DigestAndSignerInfoGeneratorHolder
+ 		{
+@@ -68,7 +68,7 @@
+ 		}
+ 
+ 		private class SignerInfoGeneratorImpl : SignerInfoGenerator
+-        {
++		{
+ 			private readonly CmsSignedDataStreamGenerator outer;
+ 
+ 			private readonly SignerIdentifier			_signerIdentifier;
+@@ -102,7 +102,7 @@
+ 
+ 				if (_sAttr != null)
+ 				{
+-            		_sig = Helper.GetSignatureInstance(signatureName);
++					_sig = Helper.GetSignatureInstance(signatureName);
+ 				}
+ 				else
+ 				{
+@@ -141,7 +141,7 @@
+ 			}
+ 
+ 			public SignerInfo Generate(DerObjectIdentifier contentType, AlgorithmIdentifier digestAlgorithm,
+-        		byte[] calculatedDigest)
++				byte[] calculatedDigest)
+ 			{
+ 				try
+ 				{
+@@ -172,19 +172,19 @@
+ //						Asn1.Cms.AttributeTable signed = _sAttr.GetAttributes(Collections.unmodifiableMap(parameters));
+ 						Asn1.Cms.AttributeTable signed = _sAttr.GetAttributes(parameters);
+ 
+-                        if (contentType == null) //counter signature
+-                        {
+-                            if (signed != null && signed[CmsAttributes.ContentType] != null)
+-                            {
+-                                IDictionary tmpSigned = signed.ToDictionary();
+-                                tmpSigned.Remove(CmsAttributes.ContentType);
+-                                signed = new Asn1.Cms.AttributeTable(tmpSigned);
+-                            }
+-                        }
++						if (contentType == null) //counter signature
++						{
++							if (signed != null && signed[CmsAttributes.ContentType] != null)
++							{
++								IDictionary tmpSigned = signed.ToDictionary();
++								tmpSigned.Remove(CmsAttributes.ContentType);
++								signed = new Asn1.Cms.AttributeTable(tmpSigned);
++							}
++						}
+ 
+-                        signedAttr = outer.GetAttributeSet(signed);
++						signedAttr = outer.GetAttributeSet(signed);
+ 
+-                		// sig must be composed from the DER encoding.
++						// sig must be composed from the DER encoding.
+ 						bytesToSign = signedAttr.GetEncoded(Asn1Encodable.Der);
+ 					}
+ 					else
+@@ -221,20 +221,20 @@
+ 					return new SignerInfo(_signerIdentifier, digestAlgorithm,
+ 						signedAttr, digestEncryptionAlgorithm, new DerOctetString(sigBytes), unsignedAttr);
+ 				}
+-	            catch (IOException e)
+-	            {
+-	                throw new CmsStreamException("encoding error.", e);
+-	            }
+-	            catch (SignatureException e)
+-	            {
+-	                throw new CmsStreamException("error creating signature.", e);
+-	            }
+-            }
+-        }
++				catch (IOException e)
++				{
++					throw new CmsStreamException("encoding error.", e);
++				}
++				catch (SignatureException e)
++				{
++					throw new CmsStreamException("error creating signature.", e);
++				}
++			}
++		}
+ 
+ 		public CmsSignedDataStreamGenerator()
+-        {
+-        }
++		{
++		}
+ 
+ 		/// <summary>Constructor allowing specific source of randomness</summary>
+ 		/// <param name="rand">Instance of <c>SecureRandom</c> to use.</param>
+@@ -245,20 +245,20 @@
+ 		}
+ 
+ 		/**
+-        * Set the underlying string size for encapsulated data
+-        *
+-        * @param bufferSize length of octet strings to buffer the data.
+-        */
+-        public void SetBufferSize(
+-            int bufferSize)
+-        {
+-            _bufferSize = bufferSize;
+-        }
++		* Set the underlying string size for encapsulated data
++		*
++		* @param bufferSize length of octet strings to buffer the data.
++		*/
++		public void SetBufferSize(
++			int bufferSize)
++		{
++			_bufferSize = bufferSize;
++		}
+ 
+ 		public void AddDigests(
+-       		params string[] digestOids)
++			params string[] digestOids)
+ 		{
+-       		AddDigests((IEnumerable) digestOids);
++			AddDigests((IEnumerable) digestOids);
+ 		}
+ 
+ 		public void AddDigests(
+@@ -271,16 +271,16 @@
+ 		}
+ 
+ 		/**
+-        * add a signer - no attributes other than the default ones will be
+-        * provided here.
+-        * @throws NoSuchAlgorithmException
+-        * @throws InvalidKeyException
+-        */
+-        public void AddSigner(
+-            AsymmetricKeyParameter	privateKey,
+-            X509Certificate			cert,
+-            string					digestOid)
+-        {
++		* add a signer - no attributes other than the default ones will be
++		* provided here.
++		* @throws NoSuchAlgorithmException
++		* @throws InvalidKeyException
++		*/
++		public void AddSigner(
++			AsymmetricKeyParameter	privateKey,
++			X509Certificate			cert,
++			string					digestOid)
++		{
+ 			AddSigner(privateKey, cert, digestOid,
+ 				new DefaultSignedAttributeTableGenerator(), null);
+ 		}
+@@ -303,18 +303,18 @@
+ 				(CmsAttributeTableGenerator)null);
+ 		}
+ 
+-        /**
+-        * add a signer with extra signed/unsigned attributes.
+-        * @throws NoSuchAlgorithmException
+-        * @throws InvalidKeyException
+-        */
+-        public void AddSigner(
+-            AsymmetricKeyParameter	privateKey,
+-            X509Certificate			cert,
+-            string					digestOid,
+-            Asn1.Cms.AttributeTable	signedAttr,
+-            Asn1.Cms.AttributeTable	unsignedAttr)
+-        {
++		/**
++		* add a signer with extra signed/unsigned attributes.
++		* @throws NoSuchAlgorithmException
++		* @throws InvalidKeyException
++		*/
++		public void AddSigner(
++			AsymmetricKeyParameter	privateKey,
++			X509Certificate			cert,
++			string					digestOid,
++			Asn1.Cms.AttributeTable	signedAttr,
++			Asn1.Cms.AttributeTable	unsignedAttr)
++		{
+ 			AddSigner(privateKey, cert, digestOid,
+ 				new DefaultSignedAttributeTableGenerator(signedAttr),
+ 				new SimpleAttributeTableGenerator(unsignedAttr));
+@@ -349,7 +349,7 @@
+ 		{
+ 			AddSigner(privateKey, cert, GetEncOid(privateKey, digestOid), digestOid,
+ 				signedAttrGenerator, unsignedAttrGenerator);
+-        }
++		}
+ 
+ 		public void AddSigner(
+ 			AsymmetricKeyParameter		privateKey,
+@@ -407,8 +407,8 @@
+ 			string					digestOid,
+ 			Asn1.Cms.AttributeTable	signedAttr,
+ 			Asn1.Cms.AttributeTable	unsignedAttr)
+-	    {
+-	        AddSigner(privateKey, subjectKeyID, digestOid,
++		{
++			AddSigner(privateKey, subjectKeyID, digestOid,
+ 				new DefaultSignedAttributeTableGenerator(signedAttr),
+ 				new SimpleAttributeTableGenerator(unsignedAttr));
+ 		}
+@@ -463,26 +463,26 @@
+ 		}
+ 
+ 		/**
+-        * generate a signed object that for a CMS Signed Data object
+-        */
+-        public Stream Open(
+-            Stream outStream)
+-        {
+-            return Open(outStream, false);
+-        }
+-
+-        /**
+-        * generate a signed object that for a CMS Signed Data
+-        * object - if encapsulate is true a copy
+-        * of the message will be included in the signature with the
+-        * default content type "data".
+-        */
+-        public Stream Open(
+-            Stream	outStream,
+-            bool	encapsulate)
+-        {
+-            return Open(outStream, Data, encapsulate);
+-        }
++		* generate a signed object that for a CMS Signed Data object
++		*/
++		public Stream Open(
++			Stream outStream)
++		{
++			return Open(outStream, false);
++		}
++
++		/**
++		* generate a signed object that for a CMS Signed Data
++		* object - if encapsulate is true a copy
++		* of the message will be included in the signature with the
++		* default content type "data".
++		*/
++		public Stream Open(
++			Stream	outStream,
++			bool	encapsulate)
++		{
++			return Open(outStream, Data, encapsulate);
++		}
+ 
+ 		/**
+ 		 * generate a signed object that for a CMS Signed Data
+@@ -503,16 +503,16 @@
+ 		}
+ 
+ 		/**
+-        * generate a signed object that for a CMS Signed Data
+-        * object - if encapsulate is true a copy
+-        * of the message will be included in the signature. The content type
+-        * is set according to the OID represented by the string signedContentType.
+-        */
+-        public Stream Open(
+-            Stream	outStream,
+-            string	signedContentType,
+-            bool	encapsulate)
+-        {
++		* generate a signed object that for a CMS Signed Data
++		* object - if encapsulate is true a copy
++		* of the message will be included in the signature. The content type
++		* is set according to the OID represented by the string signedContentType.
++		*/
++		public Stream Open(
++			Stream	outStream,
++			string	signedContentType,
++			bool	encapsulate)
++		{
+ 			return Open(outStream, signedContentType, encapsulate, null);
+ 		}
+ 
+@@ -542,85 +542,85 @@
+ 			_messageDigestsLocked = true;
+ 
+ 			//
+-            // ContentInfo
+-            //
+-            BerSequenceGenerator sGen = new BerSequenceGenerator(outStream);
++			// ContentInfo
++			//
++			BerSequenceGenerator sGen = new BerSequenceGenerator(outStream);
+ 
+ 			sGen.AddObject(CmsObjectIdentifiers.SignedData);
+ 
+ 			//
+-            // Signed Data
+-            //
+-            BerSequenceGenerator sigGen = new BerSequenceGenerator(
++			// Signed Data
++			//
++			BerSequenceGenerator sigGen = new BerSequenceGenerator(
+ 				sGen.GetRawOutputStream(), 0, true);
+ 
+-            bool isCounterSignature = (signedContentType == null);
++			bool isCounterSignature = (signedContentType == null);
+ 
+-            DerObjectIdentifier contentTypeOid = isCounterSignature
+-                ? null
+-                : new DerObjectIdentifier(signedContentType);
++			DerObjectIdentifier contentTypeOid = isCounterSignature
++				? null
++				: new DerObjectIdentifier(signedContentType);
+ 
+-            sigGen.AddObject(CalculateVersion(contentTypeOid));
++			sigGen.AddObject(CalculateVersion(contentTypeOid));
+ 
+ 			Asn1EncodableVector digestAlgs = new Asn1EncodableVector();
+ 
+ 			foreach (string digestOid in _messageDigestOids)
+-            {
++			{
+ 				digestAlgs.Add(
+-            		new AlgorithmIdentifier(new DerObjectIdentifier(digestOid), DerNull.Instance));
+-            }
++					new AlgorithmIdentifier(new DerObjectIdentifier(digestOid), DerNull.Instance));
++			}
+ 
+-            {
++			{
+ 				byte[] tmp = new DerSet(digestAlgs).GetEncoded();
+ 				sigGen.GetRawOutputStream().Write(tmp, 0, tmp.Length);
+ 			}
+ 
+ 			BerSequenceGenerator eiGen = new BerSequenceGenerator(sigGen.GetRawOutputStream());
+-            eiGen.AddObject(contentTypeOid);
++			eiGen.AddObject(contentTypeOid);
+ 
+-        	// If encapsulating, add the data as an octet string in the sequence
++			// If encapsulating, add the data as an octet string in the sequence
+ 			Stream encapStream = encapsulate
+ 				?	CmsUtilities.CreateBerOctetOutputStream(eiGen.GetRawOutputStream(), 0, true, _bufferSize)
+ 				:	null;
+ 
+-        	// Also send the data to 'dataOutputStream' if necessary
++			// Also send the data to 'dataOutputStream' if necessary
+ 			Stream teeStream = GetSafeTeeOutputStream(dataOutputStream, encapStream);
+ 
+-        	// Let all the digests see the data as it is written
++			// Let all the digests see the data as it is written
+ 			Stream digStream = AttachDigestsToOutputStream(_messageDigests.Values, teeStream);
+ 
+ 			return new CmsSignedDataOutputStream(this, digStream, signedContentType, sGen, sigGen, eiGen);
+-        }
++		}
+ 
+ 		private void RegisterDigestOid(
+ 			string digestOid)
+ 		{
+-       		if (_messageDigestsLocked)
+-       		{
+-       			if (!_messageDigestOids.Contains(digestOid))
++			if (_messageDigestsLocked)
++			{
++				if (!_messageDigestOids.Contains(digestOid))
+ 					throw new InvalidOperationException("Cannot register new digest OIDs after the data stream is opened");
+-       		}
+-       		else
+-       		{
++			}
++			else
++			{
+ 				_messageDigestOids.Add(digestOid);
+-       		}
++			}
+ 		}
+ 
+ 		private void ConfigureDigest(
+ 			string digestOid)
+ 		{
+-       		RegisterDigestOid(digestOid);
++			RegisterDigestOid(digestOid);
+ 
+-       		string digestName = Helper.GetDigestAlgName(digestOid);
++			string digestName = Helper.GetDigestAlgName(digestOid);
+ 			IDigest dig = (IDigest)_messageDigests[digestName];
+ 			if (dig == null)
+ 			{
+ 				if (_messageDigestsLocked)
+ 					throw new InvalidOperationException("Cannot configure new digests after the data stream is opened");
+ 
+-            	dig = Helper.GetDigestInstance(digestName);
+-            	_messageDigests[digestName] = dig;
+-            }
++				dig = Helper.GetDigestInstance(digestName);
++				_messageDigests[digestName] = dig;
++			}
+ 		}
+ 
+ 		// TODO Make public?
+@@ -636,7 +636,11 @@
+ 			{
+ 				content.Write(signedOut);
+ 			}
++#if PORTABLE
++			signedOut.Dispose();
++#else
+ 			signedOut.Close();
++#endif
+ 		}
+ 
+ 		// RFC3852, section 5.1:
+@@ -717,13 +721,13 @@
+ 				return new DerInteger(4);
+ 			}
+ 
+-            if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) || CheckForVersion3(_signers))
+-            {
+-                return new DerInteger(3);
+-            }
++			if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) || CheckForVersion3(_signers))
++			{
++				return new DerInteger(3);
++			}
+ 
+-            return new DerInteger(1);
+-        }
++			return new DerInteger(1);
++		}
+ 
+ 		private bool CheckForVersion3(
+ 			IList signerInfos)
+@@ -768,54 +772,58 @@
+ 		}
+ 
+ 		private class CmsSignedDataOutputStream
+-            : BaseOutputStream
+-        {
++			: BaseOutputStream
++		{
+ 			private readonly CmsSignedDataStreamGenerator outer;
+ 
+ 			private Stream					_out;
+-            private DerObjectIdentifier		_contentOID;
+-            private BerSequenceGenerator	_sGen;
+-            private BerSequenceGenerator	_sigGen;
+-            private BerSequenceGenerator	_eiGen;
++			private DerObjectIdentifier		_contentOID;
++			private BerSequenceGenerator	_sGen;
++			private BerSequenceGenerator	_sigGen;
++			private BerSequenceGenerator	_eiGen;
+ 
+ 			public CmsSignedDataOutputStream(
+ 				CmsSignedDataStreamGenerator	outer,
+ 				Stream							outStream,
+-                string							contentOID,
+-                BerSequenceGenerator			sGen,
+-                BerSequenceGenerator			sigGen,
+-                BerSequenceGenerator			eiGen)
+-            {
++				string							contentOID,
++				BerSequenceGenerator			sGen,
++				BerSequenceGenerator			sigGen,
++				BerSequenceGenerator			eiGen)
++			{
+ 				this.outer = outer;
+ 
+ 				_out = outStream;
+-                _contentOID = new DerObjectIdentifier(contentOID);
+-                _sGen = sGen;
+-                _sigGen = sigGen;
+-                _eiGen = eiGen;
+-            }
++				_contentOID = new DerObjectIdentifier(contentOID);
++				_sGen = sGen;
++				_sigGen = sigGen;
++				_eiGen = eiGen;
++			}
+ 
+ 			public override void WriteByte(
+-                byte b)
+-            {
+-                _out.WriteByte(b);
+-            }
++				byte b)
++			{
++				_out.WriteByte(b);
++			}
+ 
+ 			public override void Write(
+-                byte[]	bytes,
+-                int		off,
+-                int		len)
+-            {
+-                _out.Write(bytes, off, len);
+-            }
++				byte[]	bytes,
++				int		off,
++				int		len)
++			{
++				_out.Write(bytes, off, len);
++			}
+ 
+ 			public override void Close()
+-            {
+-                _out.Close();
++			{
++#if PORTABLE
++				_out.Dispose();
++#else
++				_out.Close();
++#endif
+ 
+ 				// TODO Parent context(s) should really be be closed explicitly
+ 
+-                _eiGen.Close();
++				_eiGen.Close();
+ 
+ 				outer._digests.Clear();    // clear the current preserved digest state
+ 
+@@ -847,11 +855,11 @@
+ 				//
+ 				// collect all the SignerInfo objects
+ 				//
+-                Asn1EncodableVector signerInfos = new Asn1EncodableVector();
++				Asn1EncodableVector signerInfos = new Asn1EncodableVector();
+ 
+ 				//
+-                // add the generated SignerInfo objects
+-                //
++				// add the generated SignerInfo objects
++				//
+ 				{
+ 					foreach (DigestAndSignerInfoGeneratorHolder holder in outer._signerInfs)
+ 					{
+@@ -862,12 +870,12 @@
+ 						outer._digests[holder.digestOID] = calculatedDigest.Clone();
+ 
+ 						signerInfos.Add(holder.signerInf.Generate(_contentOID, digestAlgorithm, calculatedDigest));
+-	                }
++					}
+ 				}
+ 
+ 				//
+-                // add the precalculated SignerInfo objects.
+-                //
++				// add the precalculated SignerInfo objects.
++				//
+ 				{
+ 					foreach (SignerInformation signer in outer._signers)
+ 					{
+@@ -891,13 +899,13 @@
+ //						}
+ 
+ 						signerInfos.Add(signer.ToSignerInfo());
+-	                }
++					}
+ 				}
+ 
+ 				WriteToGenerator(_sigGen, new DerSet(signerInfos));
+ 
+ 				_sigGen.Close();
+-                _sGen.Close();
++				_sGen.Close();
+ 				base.Close();
+ 			}
+ 
+@@ -909,5 +917,5 @@
+ 				ag.GetRawOutputStream().Write(encoded, 0, encoded.Length);
+ 			}
+ 		}
+-    }
++	}
+ }
+Index: csharp/crypto/src/cms/CMSTypedStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/CMSTypedStream.cs,v
+retrieving revision 1.17
+diff -u -a -r1.17 CMSTypedStream.cs
+--- csharp/crypto/src/cms/CMSTypedStream.cs	1 Sep 2011 09:48:40 -0000	1.17
++++ csharp/crypto/src/cms/CMSTypedStream.cs	19 Jan 2013 23:42:38 -0000
+@@ -33,7 +33,7 @@
+ 			int		bufSize)
+ 		{
+ 			_oid = oid;
+-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
++#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
+ 			_in = new FullReaderStream(inStream);
+ #else
+ 			_in = new FullReaderStream(new BufferedStream(inStream, bufSize));
+@@ -53,7 +53,11 @@
+ 		public void Drain()
+ 		{
+ 			Streams.Drain(_in);
++#if PORTABLE
++			_in.Dispose();
++#else
+ 			_in.Close();
++#endif
+ 		}
+ 
+ 		private class FullReaderStream : FilterStream
+Index: csharp/crypto/src/cms/DefaultSignedAttributeTableGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/DefaultSignedAttributeTableGenerator.cs,v
+retrieving revision 1.6
+diff -u -a -r1.6 DefaultSignedAttributeTableGenerator.cs
+--- csharp/crypto/src/cms/DefaultSignedAttributeTableGenerator.cs	19 Feb 2011 06:11:26 -0000	1.6
++++ csharp/crypto/src/cms/DefaultSignedAttributeTableGenerator.cs	19 Jan 2013 23:42:38 -0000
+@@ -41,7 +41,7 @@
+ 			}
+ 		}
+ 
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+ 		/**
+ 		 * Create a standard attribute table from the passed in parameters - this will
+ 		 * normally include contentType, signingTime, and messageDigest. If the constructor
+Index: csharp/crypto/src/cms/OriginatorInfoGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/OriginatorInfoGenerator.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 OriginatorInfoGenerator.cs
+--- csharp/crypto/src/cms/OriginatorInfoGenerator.cs	5 Jan 2012 04:26:05 -0000	1.1
++++ csharp/crypto/src/cms/OriginatorInfoGenerator.cs	19 Jan 2013 23:42:38 -0000
+@@ -1,6 +1,9 @@
+ ﻿using System;
+ using System.Collections;
+-
++#if PORTABLE
++using System.Collections.Generic;
++using Org.BouncyCastle.Asn1.X509;
++#endif
+ using Org.BouncyCastle.Asn1;
+ using Org.BouncyCastle.Asn1.Cms;
+ using Org.BouncyCastle.X509;
+@@ -15,7 +18,11 @@
+ 
+         public OriginatorInfoGenerator(X509Certificate origCert)
+         {
++#if PORTABLE
++            this.origCerts = new List<X509CertificateStructure>(1);
++#else
+             this.origCerts = new ArrayList(1);
++#endif
+             this.origCrls = null;
+             origCerts.Add(origCert.CertificateStructure);
+         }
+Index: csharp/crypto/src/cms/OriginatorInformation.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/cms/OriginatorInformation.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 OriginatorInformation.cs
+--- csharp/crypto/src/cms/OriginatorInformation.cs	5 Jan 2012 04:26:05 -0000	1.1
++++ csharp/crypto/src/cms/OriginatorInformation.cs	19 Jan 2013 23:42:38 -0000
+@@ -1,9 +1,12 @@
+ ﻿using System;
+ using System.Collections;
+-
++#if PORTABLE
++using System.Collections.Generic;
++#endif
+ using Org.BouncyCastle.Asn1;
+ using Org.BouncyCastle.Asn1.Cms;
+ using Org.BouncyCastle.Asn1.X509;
++using Org.BouncyCastle.Utilities.Collections;
+ using Org.BouncyCastle.X509;
+ using Org.BouncyCastle.X509.Store;
+ 
+@@ -29,7 +32,11 @@
+ 
+ 			if (certSet != null)
+ 			{
++#if PORTABLE
++				IList certList = new List<X509Certificate>(certSet.Count);
++#else
+ 				IList certList = new ArrayList(certSet.Count);
++#endif
+ 
+ 				foreach (Asn1Encodable enc in certSet)
+ 				{
+@@ -47,7 +54,11 @@
+ 
+ 			return X509StoreFactory.Create(
+ 				"Certificate/Collection",
++#if PORTABLE
++				new X509CollectionStoreParameters(new List<object>()));
++#else
+ 				new X509CollectionStoreParameters(new ArrayList()));
++#endif
+ 		}
+ 
+ 		/**
+@@ -61,7 +72,11 @@
+ 
+ 			if (crlSet != null)
+ 			{
++#if PORTABLE
++				IList crlList = new List<X509Crl>(crlSet.Count);
++#else
+ 				IList crlList = new ArrayList(crlSet.Count);
++#endif
+ 
+ 				foreach (Asn1Encodable enc in crlSet)
+ 				{
+@@ -79,7 +94,11 @@
+ 
+ 			return X509StoreFactory.Create(
+ 				"CRL/Collection",
++#if PORTABLE
++				new X509CollectionStoreParameters(new List<object>()));
++#else
+ 				new X509CollectionStoreParameters(new ArrayList()));
++#endif
+ 		}
+ 
+ 		/**
+Index: csharp/crypto/src/crypto/engines/GOST28147Engine.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/engines/GOST28147Engine.cs,v
+retrieving revision 1.12
+diff -u -a -r1.12 GOST28147Engine.cs
+--- csharp/crypto/src/crypto/engines/GOST28147Engine.cs	22 Sep 2010 16:33:14 -0000	1.12
++++ csharp/crypto/src/crypto/engines/GOST28147Engine.cs	19 Jan 2013 23:42:39 -0000
+@@ -134,7 +134,11 @@
+ 
+ 		private static void AddSBox(string sBoxName, byte[] sBox)
+ 		{
++#if PORTABLE
++			sBoxes.Add(sBoxName.ToUpperInvariant(), sBox);
++#else
+ 			sBoxes.Add(sBoxName.ToUpper(CultureInfo.InvariantCulture), sBox);        
++#endif
+ 		}
+ 
+ 		/**
+@@ -363,7 +367,11 @@
+ 		public static byte[] GetSBox(
+ 			string sBoxName)
+ 		{
++#if PORTABLE
++			byte[] sBox = (byte[])sBoxes[sBoxName.ToUpperInvariant()];
++#else
+ 			byte[] sBox = (byte[])sBoxes[sBoxName.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			if (sBox == null)
+ 			{
+Index: csharp/crypto/src/crypto/engines/NaccacheSternEngine.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/engines/NaccacheSternEngine.cs,v
+retrieving revision 1.15
+diff -u -a -r1.15 NaccacheSternEngine.cs
+--- csharp/crypto/src/crypto/engines/NaccacheSternEngine.cs	19 Sep 2010 07:34:50 -0000	1.15
++++ csharp/crypto/src/crypto/engines/NaccacheSternEngine.cs	19 Jan 2013 23:42:39 -0000
+@@ -49,10 +49,12 @@
+ 			// construct lookup table for faster decryption if necessary
+ 			if (!this.forEncryption)
+ 			{
++#if !PORTABLE
+ 				if (debug)
+ 				{
+ 					Console.WriteLine("Constructing lookup Array");
+ 				}
++#endif
+ 				NaccacheSternPrivateKeyParameters priv = (NaccacheSternPrivateKeyParameters)key;
+ 				IList primes = priv.SmallPrimesList;
+ 				lookup = new IList[primes.Count];
+@@ -64,10 +66,12 @@
+ 					lookup[i] = Platform.CreateArrayList(actualPrimeValue);
+ 					lookup[i].Add(BigInteger.One);
+ 
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("Constructing lookup ArrayList for " + actualPrimeValue);
+ 					}
++#endif
+ 
+ 					BigInteger accJ = BigInteger.Zero;
+ 
+@@ -156,10 +160,12 @@
+ 			// transform input into BigInteger
+ 			BigInteger input = new BigInteger(1, inBytes, inOff, length);
+ 
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("input as BigInteger: " + input);
+ 			}
++#endif
+ 
+ 			byte[] output;
+ 			if (forEncryption)
+@@ -178,10 +184,12 @@
+ 					IList al = lookup[i];
+ 					if (lookup[i].Count != ((BigInteger)primes[i]).IntValue)
+ 					{
++#if !PORTABLE
+ 						if (debug)
+ 						{
+ 							Console.WriteLine("Prime is " + primes[i] + ", lookup table has size " + al.Count);
+ 						}
++#endif
+ 						throw new InvalidCipherTextException("Error in lookup Array for "
+ 										+ ((BigInteger)primes[i]).IntValue
+ 										+ ": Size mismatch. Expected ArrayList with length "
+@@ -192,6 +200,7 @@
+ 
+ 					if (lookedup == -1)
+ 					{
++#if !PORTABLE
+ 						if (debug)
+ 						{
+ 							Console.WriteLine("Actual prime is " + primes[i]);
+@@ -204,6 +213,7 @@
+ 								Console.WriteLine(lookup[i][j]);
+ 							}
+ 						}
++#endif
+ 						throw new InvalidCipherTextException("Lookup failed");
+ 					}
+ 					plain.Add(BigInteger.ValueOf(lookedup));
+@@ -256,10 +266,12 @@
+ 
+ 			byte[] tmp = key.G.ModPow(plain, key.Modulus).ToByteArray();
+ 			Array.Copy(tmp, 0, output, output.Length - tmp.Length, tmp.Length);
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("Encrypted value is:  " + new BigInteger(output));
+ 			}
++#endif
+ 			return output;
+ 		}
+ 
+@@ -302,12 +314,14 @@
+ 			BigInteger m2Crypt = new BigInteger(1, block2);
+ 			BigInteger m1m2Crypt = m1Crypt.Multiply(m2Crypt);
+ 			m1m2Crypt = m1m2Crypt.Mod(key.Modulus);
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("c(m1) as BigInteger:....... " + m1Crypt);
+ 				Console.WriteLine("c(m2) as BigInteger:....... " + m2Crypt);
+ 				Console.WriteLine("c(m1)*c(m2)%n = c(m1+m2)%n: " + m1m2Crypt);
+ 			}
++#endif
+ 
+ 			//byte[] output = key.Modulus.ToByteArray();
+ 			//Array.Clear(output, 0, output.Length);
+@@ -332,20 +346,24 @@
+ 		public byte[] ProcessData(
+ 			byte[] data)
+ 		{
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine();
+ 			}
++#endif
+ 			if (data.Length > GetInputBlockSize())
+ 			{
+ 				int inBlocksize = GetInputBlockSize();
+ 				int outBlocksize = GetOutputBlockSize();
++#if !PORTABLE
+ 				if (debug)
+ 				{
+ 					Console.WriteLine("Input blocksize is:  " + inBlocksize + " bytes");
+ 					Console.WriteLine("Output blocksize is: " + outBlocksize + " bytes");
+ 					Console.WriteLine("Data has length:.... " + data.Length + " bytes");
+ 				}
++#endif
+ 				int datapos = 0;
+ 				int retpos = 0;
+ 				byte[] retval = new byte[(data.Length / inBlocksize + 1) * outBlocksize];
+@@ -362,10 +380,12 @@
+ 						tmp = ProcessBlock(data, datapos, data.Length - datapos);
+ 						datapos += data.Length - datapos;
+ 					}
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("new datapos is " + datapos);
+ 					}
++#endif
+ 					if (tmp != null)
+ 					{
+ 						tmp.CopyTo(retval, retpos);
+@@ -373,27 +393,33 @@
+ 					}
+ 					else
+ 					{
++#if !PORTABLE
+ 						if (debug)
+ 						{
+ 							Console.WriteLine("cipher returned null");
+ 						}
++#endif
+ 						throw new InvalidCipherTextException("cipher returned null");
+ 					}
+ 				}
+ 				byte[] ret = new byte[retpos];
+ 				Array.Copy(retval, 0, ret, 0, retpos);
++#if !PORTABLE
+ 				if (debug)
+ 				{
+ 					Console.WriteLine("returning " + ret.Length + " bytes");
+ 				}
++#endif
+ 				return ret;
+ 			}
+ 			else
+ 			{
++#if !PORTABLE
+ 				if (debug)
+ 				{
+ 					Console.WriteLine("data size is less then input block size, processing directly");
+ 				}
++#endif
+ 				return ProcessBlock(data, 0, data.Length);
+ 			}
+ 		}
+Index: csharp/crypto/src/crypto/generators/ECKeyPairGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/generators/ECKeyPairGenerator.cs,v
+retrieving revision 1.28
+diff -u -a -r1.28 ECKeyPairGenerator.cs
+--- csharp/crypto/src/crypto/generators/ECKeyPairGenerator.cs	7 Jan 2010 04:19:00 -0000	1.28
++++ csharp/crypto/src/crypto/generators/ECKeyPairGenerator.cs	19 Jan 2013 23:42:39 -0000
+@@ -115,9 +115,13 @@
+ 		private string VerifyAlgorithmName(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++            string upper = algorithm.ToUpperInvariant();
++#else
+ 			string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			switch (upper)
++            switch (upper)
+ 			{
+ 				case "EC":
+ 				case "ECDSA":
+Index: csharp/crypto/src/crypto/generators/NaccacheSternKeyPairGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/generators/NaccacheSternKeyPairGenerator.cs,v
+retrieving revision 1.13
+diff -u -a -r1.13 NaccacheSternKeyPairGenerator.cs
+--- csharp/crypto/src/crypto/generators/NaccacheSternKeyPairGenerator.cs	19 Sep 2010 07:34:50 -0000	1.13
++++ csharp/crypto/src/crypto/generators/NaccacheSternKeyPairGenerator.cs	19 Jan 2013 23:42:39 -0000
+@@ -53,12 +53,14 @@
+ 			int certainty = param.Certainty;
+ 			bool debug = param.IsDebug;
+ 
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("Fetching first " + param.CountSmallPrimes + " primes.");
+ 			}
++#endif
+ 
+-			IList smallPrimes = findFirstPrimes(param.CountSmallPrimes);
++            IList smallPrimes = findFirstPrimes(param.CountSmallPrimes);
+ 
+ 			smallPrimes = permuteList(smallPrimes, rand);
+ 
+@@ -92,12 +94,14 @@
+ 			BigInteger q;
+ 
+ 			long tries = 0;
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("generating p and q");
+ 			}
++#endif
+ 
+-			BigInteger _2au = a.Multiply(u).ShiftLeft(1);
++            BigInteger _2au = a.Multiply(u).ShiftLeft(1);
+ 			BigInteger _2bv = b.Multiply(v).ShiftLeft(1);
+ 
+ 			for (;;)
+@@ -126,36 +130,44 @@
+ 
+ 				if (!sigma.Gcd(_p.Multiply(_q)).Equals(BigInteger.One))
+ 				{
++#if !PORTABLE
+ 					Console.WriteLine("sigma.gcd(_p.mult(_q)) != 1!\n _p: " + _p +"\n _q: "+ _q );
+-					continue;
++#endif
++                    continue;
+ 				}
+ 
+ 				if (p.Multiply(q).BitLength < strength)
+ 				{
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("key size too small. Should be " + strength + " but is actually "
+ 							+ p.Multiply(q).BitLength);
+ 					}
+-					continue;
++#endif
++                    continue;
+ 				}
+ 				break;
+ 			}
+ 
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("needed " + tries + " tries to generate p and q.");
+ 			}
++#endif
+ 
+-			BigInteger n = p.Multiply(q);
++            BigInteger n = p.Multiply(q);
+ 			BigInteger phi_n = p.Subtract(BigInteger.One).Multiply(q.Subtract(BigInteger.One));
+ 			BigInteger g;
+ 			tries = 0;
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("generating g");
+ 			}
+-			for (;;)
++#endif
++            for (; ; )
+ 			{
+ 				// TODO After the first loop, just regenerate one randomly-selected gPart each time?
+ 				IList gParts = Platform.CreateArrayList();
+@@ -191,11 +203,13 @@
+ 				{
+ 					if (g.ModPow(phi_n.Divide((BigInteger)smallPrimes[i]), n).Equals(BigInteger.One))
+ 					{
++#if !PORTABLE
+ 						if (debug)
+ 						{
+ 							Console.WriteLine("g has order phi(n)/" + smallPrimes[i] + "\n g: " + g);
+ 						}
+-						divisible = true;
++#endif
++                        divisible = true;
+ 						break;
+ 					}
+ 				}
+@@ -210,47 +224,58 @@
+ 				//if (g.ModPow(phi_n.Divide(BigInteger.ValueOf(4)), n).Equals(BigInteger.One))
+ 				if (g.ModPow(phi_n.ShiftRight(2), n).Equals(BigInteger.One))
+ 				{
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("g has order phi(n)/4\n g:" + g);
+ 					}
+-					continue;
++#endif
++                    continue;
+ 				}
+ 
+ 				if (g.ModPow(phi_n.Divide(_p), n).Equals(BigInteger.One))
+ 				{
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("g has order phi(n)/p'\n g: " + g);
+ 					}
+-					continue;
++#endif
++                    continue;
+ 				}
+ 				if (g.ModPow(phi_n.Divide(_q), n).Equals(BigInteger.One))
+ 				{
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("g has order phi(n)/q'\n g: " + g);
+ 					}
+-					continue;
++#endif
++                    continue;
+ 				}
+ 				if (g.ModPow(phi_n.Divide(a), n).Equals(BigInteger.One))
+ 				{
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("g has order phi(n)/a\n g: " + g);
+ 					}
+-					continue;
++#endif
++                    continue;
+ 				}
+ 				if (g.ModPow(phi_n.Divide(b), n).Equals(BigInteger.One))
+ 				{
++#if !PORTABLE
+ 					if (debug)
+ 					{
+ 						Console.WriteLine("g has order phi(n)/b\n g: " + g);
+ 					}
+-					continue;
++#endif
++                    continue;
+ 				}
+ 				break;
+ 			}
++#if !PORTABLE
+ 			if (debug)
+ 			{
+ 				Console.WriteLine("needed " + tries + " tries to generate g");
+@@ -269,8 +294,9 @@
+ 				Console.WriteLine("g:.......... " + g);
+ 				Console.WriteLine();
+ 			}
++#endif
+ 
+-			return new AsymmetricCipherKeyPair(new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),
++            return new AsymmetricCipherKeyPair(new NaccacheSternKeyParameters(false, g, n, sigma.BitLength),
+ 				new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n));
+ 		}
+ 
+Index: csharp/crypto/src/crypto/io/CipherStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/io/CipherStream.cs,v
+retrieving revision 1.31
+diff -u -a -r1.31 CipherStream.cs
+--- csharp/crypto/src/crypto/io/CipherStream.cs	1 Nov 2008 16:01:26 -0000	1.31
++++ csharp/crypto/src/crypto/io/CipherStream.cs	19 Jan 2013 23:42:39 -0000
+@@ -201,7 +201,11 @@
+             set { throw new NotSupportedException(); }
+         }
+ 
++#if PORTABLE
++        public virtual void Close()
++#else
+ 		public override void Close()
++#endif
+         {
+ 			if (outCipher != null)
+ 			{
+@@ -209,7 +213,11 @@
+ 				stream.Write(data, 0, data.Length);
+ 				stream.Flush();
+ 			}
++#if PORTABLE
++            stream.Dispose();
++#else
+ 			stream.Close();
++#endif
+         }
+ 
+ 		public override void Flush()
+Index: csharp/crypto/src/crypto/io/DigestStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/io/DigestStream.cs,v
+retrieving revision 1.14
+diff -u -a -r1.14 DigestStream.cs
+--- csharp/crypto/src/crypto/io/DigestStream.cs	16 Mar 2009 06:52:48 -0000	1.14
++++ csharp/crypto/src/crypto/io/DigestStream.cs	19 Jan 2013 23:42:39 -0000
+@@ -110,12 +110,19 @@
+ 			set { stream.Position = value; }
+ 		}
+ 
++#if PORTABLE
++        public virtual void Close()
++        {
++            stream.Dispose();
++        }
++#else
+ 		public override void Close()
+ 		{
+ 			stream.Close();
+ 		}
++#endif
+ 
+-		public override  void Flush()
++        public override  void Flush()
+ 		{
+ 			stream.Flush();
+ 		}
+Index: csharp/crypto/src/crypto/io/MacStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/io/MacStream.cs,v
+retrieving revision 1.13
+diff -u -a -r1.13 MacStream.cs
+--- csharp/crypto/src/crypto/io/MacStream.cs	9 Sep 2009 20:02:02 -0000	1.13
++++ csharp/crypto/src/crypto/io/MacStream.cs	19 Jan 2013 23:42:39 -0000
+@@ -109,12 +109,19 @@
+ 			set { stream.Position = value; }
+ 		}
+ 
++#if PORTABLE
++        public virtual void Close()
++        {
++            stream.Dispose();
++        }
++#else
+ 		public override void Close()
+ 		{
+ 			stream.Close();
+ 		}
++#endif
+ 
+-		public override void Flush()
++        public override void Flush()
+ 		{
+ 			stream.Flush();
+ 		}
+Index: csharp/crypto/src/crypto/io/SignerStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/io/SignerStream.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 SignerStream.cs
+--- csharp/crypto/src/crypto/io/SignerStream.cs	16 Mar 2009 06:53:50 -0000	1.1
++++ csharp/crypto/src/crypto/io/SignerStream.cs	19 Jan 2013 23:42:39 -0000
+@@ -110,12 +110,19 @@
+ 			set { stream.Position = value; }
+ 		}
+ 
++#if PORTABLE
++        public virtual void Close()
++        {
++            stream.Dispose();
++        }
++#else
+ 		public override void Close()
+ 		{
+ 			stream.Close();
+ 		}
++#endif
+ 
+-		public override  void Flush()
++        public override  void Flush()
+ 		{
+ 			stream.Flush();
+ 		}
+Index: csharp/crypto/src/crypto/modes/gcm/Tables1kGcmExponentiator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/modes/gcm/Tables1kGcmExponentiator.cs,v
+retrieving revision 1.3
+diff -u -a -r1.3 Tables1kGcmExponentiator.cs
+--- csharp/crypto/src/crypto/modes/gcm/Tables1kGcmExponentiator.cs	5 Nov 2012 08:04:43 -0000	1.3
++++ csharp/crypto/src/crypto/modes/gcm/Tables1kGcmExponentiator.cs	19 Jan 2013 23:42:39 -0000
+@@ -1,6 +1,8 @@
+ using System;
+ using System.Collections;
+-
++#if PORTABLE
++using System.Collections.Generic;
++#endif
+ using Org.BouncyCastle.Utilities;
+ 
+ namespace Org.BouncyCastle.Crypto.Modes.Gcm
+@@ -10,7 +12,11 @@
+ 	{
+         // A lookup table of the power-of-two powers of 'x'
+         // - lookupPowX2[i] = x^(2^i)
++#if PORTABLE
++        private IList<byte[]> lookupPowX2;
++#else
+         private ArrayList lookupPowX2;
++#endif
+ 
+         public void Init(byte[] x)
+ 		{
+@@ -18,8 +24,11 @@
+             {
+                 return;
+             }
+-
++#if PORTABLE
++            lookupPowX2 = new List<byte[]>(8);
++#else
+             lookupPowX2 = new ArrayList(8);
++#endif
+             lookupPowX2.Add(Arrays.Clone(x));
+ 		}
+ 
+Index: csharp/crypto/src/crypto/parameters/ECKeyParameters.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/parameters/ECKeyParameters.cs,v
+retrieving revision 1.17
+diff -u -a -r1.17 ECKeyParameters.cs
+--- csharp/crypto/src/crypto/parameters/ECKeyParameters.cs	7 Jan 2010 04:19:00 -0000	1.17
++++ csharp/crypto/src/crypto/parameters/ECKeyParameters.cs	19 Jan 2013 23:42:39 -0000
+@@ -101,9 +101,13 @@
+ 		private string VerifyAlgorithmName(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++            string upper = algorithm.ToUpperInvariant();
++#else
+ 			string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			switch (upper)
++            switch (upper)
+ 			{
+ 				case "EC":
+ 				case "ECDSA":
+Index: csharp/crypto/src/crypto/parameters/NaccacheSternPrivateKeyParameters.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/parameters/NaccacheSternPrivateKeyParameters.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 NaccacheSternPrivateKeyParameters.cs
+--- csharp/crypto/src/crypto/parameters/NaccacheSternPrivateKeyParameters.cs	19 Sep 2010 07:34:50 -0000	1.5
++++ csharp/crypto/src/crypto/parameters/NaccacheSternPrivateKeyParameters.cs	19 Jan 2013 23:42:39 -0000
+@@ -16,7 +16,7 @@
+ 		private readonly BigInteger phiN;
+ 		private readonly IList smallPrimes;
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public NaccacheSternPrivateKeyParameters(
+             BigInteger g,
+@@ -63,7 +63,7 @@
+ 			get { return phiN; }
+ 		}
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete("Use 'SmallPrimesList' instead")]
+         public ArrayList SmallPrimes
+ 		{
+Index: csharp/crypto/src/crypto/prng/CryptoApiRandomGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/prng/CryptoApiRandomGenerator.cs,v
+retrieving revision 1.4
+diff -u -a -r1.4 CryptoApiRandomGenerator.cs
+--- csharp/crypto/src/crypto/prng/CryptoApiRandomGenerator.cs	27 Apr 2011 04:54:26 -0000	1.4
++++ csharp/crypto/src/crypto/prng/CryptoApiRandomGenerator.cs	19 Jan 2013 23:42:39 -0000
+@@ -1,4 +1,4 @@
+-#if !NETCF_1_0
++#if !(NETCF_1_0 || PORTABLE)
+ 
+ using System;
+ using System.Security.Cryptography;
+Index: csharp/crypto/src/crypto/prng/ThreadedSeedGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/prng/ThreadedSeedGenerator.cs,v
+retrieving revision 1.7
+diff -u -a -r1.7 ThreadedSeedGenerator.cs
+--- csharp/crypto/src/crypto/prng/ThreadedSeedGenerator.cs	7 May 2012 15:06:59 -0000	1.7
++++ csharp/crypto/src/crypto/prng/ThreadedSeedGenerator.cs	19 Jan 2013 23:42:39 -0000
+@@ -34,6 +34,9 @@
+ 				int		numBytes,
+ 				bool	fast)
+ 			{
++#if PORTABLE
++                return DoGenerateSeed(numBytes, fast);
++#else
+                 ThreadPriority originalPriority = Thread.CurrentThread.Priority;
+                 try
+                 {
+@@ -44,6 +47,7 @@
+                 {
+                     Thread.CurrentThread.Priority = originalPriority;
+                 }
++#endif
+             }
+ 
+             private byte[] DoGenerateSeed(
+@@ -65,7 +69,11 @@
+ 					{
+ 						try
+ 						{
++#if PORTABLE
++						    new AutoResetEvent(false).WaitOne(1);
++#else
+ 							Thread.Sleep(1);
++#endif
+ 						}
+ 						catch (Exception)
+ 						{
+Index: csharp/crypto/src/crypto/tls/RecordStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/tls/RecordStream.cs,v
+retrieving revision 1.13
+diff -u -a -r1.13 RecordStream.cs
+--- csharp/crypto/src/crypto/tls/RecordStream.cs	17 Jun 2011 04:01:16 -0000	1.13
++++ csharp/crypto/src/crypto/tls/RecordStream.cs	19 Jan 2013 23:42:39 -0000
+@@ -97,8 +97,12 @@
+ 			{
+ 				cOut.Write(message, offset, len);
+ 				cOut.Flush();
++#if PORTABLE
++                ciphertext = writeCipher.EncodePlaintext(type, buffer.ToArray(), 0, (int)buffer.Position);
++#else
+ 				ciphertext = writeCipher.EncodePlaintext(type, buffer.GetBuffer(), 0, (int)buffer.Position);
+-				buffer.SetLength(0);
++#endif
++                buffer.SetLength(0);
+ 			}
+ 
+ 			byte[] writeMessage = new byte[ciphertext.Length + 5];
+@@ -128,8 +132,12 @@
+ 			IOException e = null;
+ 			try
+ 			{
++#if PORTABLE
++                inStr.Dispose();
++#else
+ 				inStr.Close();
+-			}
++#endif
++            }
+ 			catch (IOException ex)
+ 			{
+ 				e = ex;
+@@ -138,7 +146,11 @@
+ 			try
+ 			{
+ 				// NB: This is harmless if outStr == inStr
++#if PORTABLE
++                outStr.Dispose();
++#else
+ 				outStr.Close();
++#endif
+ 			}
+ 			catch (IOException ex)
+ 			{
+Index: csharp/crypto/src/crypto/tls/TlsStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/crypto/tls/TlsStream.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 TlsStream.cs
+--- csharp/crypto/src/crypto/tls/TlsStream.cs	19 Jun 2010 09:35:34 -0000	1.1
++++ csharp/crypto/src/crypto/tls/TlsStream.cs	19 Jan 2013 23:42:39 -0000
+@@ -29,12 +29,17 @@
+ 			get { return !handler.IsClosed; }
+ 		}
+ 
++#if PORTABLE
++        public virtual void Close()
++#else
+ 		public override void Close()
+-		{
+-			handler.Close();
+-		}
++		
++#endif
++        {
++            handler.Close();
++        }
+ 
+-		public override void Flush()
++        public override void Flush()
+ 		{
+ 			handler.Flush();
+ 		}
+Index: csharp/crypto/src/math/BigInteger.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/math/BigInteger.cs,v
+retrieving revision 1.134
+diff -u -a -r1.134 BigInteger.cs
+--- csharp/crypto/src/math/BigInteger.cs	15 Jan 2013 13:58:11 -0000	1.134
++++ csharp/crypto/src/math/BigInteger.cs	19 Jan 2013 23:42:40 -0000
+@@ -8,10 +8,10 @@
+ 
+ namespace Org.BouncyCastle.Math
+ {
+-#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT)
++#if !(NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE)
+ 	[Serializable]
+ #endif
+-	public class BigInteger
++    public class BigInteger
+ 	{
+ 		// The first few odd primes
+         /*
+Index: csharp/crypto/src/ocsp/OCSPUtil.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/ocsp/OCSPUtil.cs,v
+retrieving revision 1.2
+diff -u -a -r1.2 OCSPUtil.cs
+--- csharp/crypto/src/ocsp/OCSPUtil.cs	19 Sep 2010 07:34:50 -0000	1.2
++++ csharp/crypto/src/ocsp/OCSPUtil.cs	19 Jan 2013 23:42:40 -0000
+@@ -92,9 +92,13 @@
+ 		internal static DerObjectIdentifier GetAlgorithmOid(
+ 			string algorithmName)
+ 		{
++#if PORTABLE
++            algorithmName = algorithmName.ToUpperInvariant();
++#else
+ 			algorithmName = algorithmName.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			if (algorithms.Contains(algorithmName))
++            if (algorithms.Contains(algorithmName))
+ 			{
+ 				return (DerObjectIdentifier)algorithms[algorithmName];
+ 			}
+Index: csharp/crypto/src/openpgp/PgpCompressedDataGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/openpgp/PgpCompressedDataGenerator.cs,v
+retrieving revision 1.16
+diff -u -a -r1.16 PgpCompressedDataGenerator.cs
+--- csharp/crypto/src/openpgp/PgpCompressedDataGenerator.cs	15 Feb 2011 06:05:21 -0000	1.16
++++ csharp/crypto/src/openpgp/PgpCompressedDataGenerator.cs	19 Jan 2013 23:42:40 -0000
+@@ -155,8 +155,13 @@
+ 			{
+ 				if (dOut != pkOut)
+ 				{
++#if PORTABLE
++					dOut.Flush();
++					dOut.Dispose();
++#else
+ 					dOut.Close();
+ 					dOut.Flush();
++#endif
+ 				}
+ 
+ 				dOut = null;
+Index: csharp/crypto/src/openpgp/PgpLiteralDataGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/openpgp/PgpLiteralDataGenerator.cs,v
+retrieving revision 1.18
+diff -u -a -r1.18 PgpLiteralDataGenerator.cs
+--- csharp/crypto/src/openpgp/PgpLiteralDataGenerator.cs	23 May 2010 13:35:05 -0000	1.18
++++ csharp/crypto/src/openpgp/PgpLiteralDataGenerator.cs	19 Jan 2013 23:42:40 -0000
+@@ -139,6 +139,7 @@
+ 			return new WrappedGeneratorStream(this, pkOut);
+ 		}
+ 
++#if !PORTABLE
+ 		/// <summary>
+ 		/// <p>
+ 		/// Open a literal data packet for the passed in <c>FileInfo</c> object, returning
+@@ -160,8 +161,9 @@
+         {
+ 			return Open(outStr, format, file.Name, file.Length, file.LastWriteTime);
+         }
++#endif
+ 
+-		/// <summary>
++        /// <summary>
+ 		/// Close the literal data packet - this is equivalent to calling Close()
+ 		/// on the stream returned by the Open() method.
+ 		/// </summary>
+Index: csharp/crypto/src/openpgp/PgpPublicKeyRingBundle.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/openpgp/PgpPublicKeyRingBundle.cs,v
+retrieving revision 1.12
+diff -u -a -r1.12 PgpPublicKeyRingBundle.cs
+--- csharp/crypto/src/openpgp/PgpPublicKeyRingBundle.cs	19 Sep 2010 07:34:52 -0000	1.12
++++ csharp/crypto/src/openpgp/PgpPublicKeyRingBundle.cs	19 Jan 2013 23:42:40 -0000
+@@ -114,8 +114,12 @@
+ 
+ 			if (ignoreCase)
+ 			{
++#if PORTABLE
++                userId = userId.ToLowerInvariant();
++#else
+ 				userId = userId.ToLower(CultureInfo.InvariantCulture);
+-			}
++#endif
++            }
+ 
+ 			foreach (PgpPublicKeyRing pubRing in GetKeyRings())
+ 			{
+@@ -123,9 +127,13 @@
+ 				{
+ 					string next = nextUserID;
+ 					if (ignoreCase)
+-					{
+-						next = next.ToLower(CultureInfo.InvariantCulture);
+-					}
++                    {
++#if PORTABLE
++                        next = next.ToLowerInvariant();
++#else
++                        next = next.ToLower(CultureInfo.InvariantCulture);
++#endif
++                    }
+ 
+ 					if (matchPartial)
+ 					{
+Index: csharp/crypto/src/openpgp/PgpSecretKeyRingBundle.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/openpgp/PgpSecretKeyRingBundle.cs,v
+retrieving revision 1.12
+diff -u -a -r1.12 PgpSecretKeyRingBundle.cs
+--- csharp/crypto/src/openpgp/PgpSecretKeyRingBundle.cs	19 Sep 2010 07:34:52 -0000	1.12
++++ csharp/crypto/src/openpgp/PgpSecretKeyRingBundle.cs	19 Jan 2013 23:42:41 -0000
+@@ -114,8 +114,12 @@
+ 
+ 			if (ignoreCase)
+ 			{
++#if PORTABLE
++                userId = userId.ToLowerInvariant();
++#else
+ 				userId = userId.ToLower(CultureInfo.InvariantCulture);
+-			}
++#endif
++            }
+ 
+ 			foreach (PgpSecretKeyRing secRing in GetKeyRings())
+ 			{
+@@ -123,9 +127,13 @@
+ 				{
+ 					string next = nextUserID;
+ 					if (ignoreCase)
+-					{
+-						next = next.ToLower(CultureInfo.InvariantCulture);
+-					}
++                    {
++#if PORTABLE
++                        next = next.ToLowerInvariant();
++#else
++                        next = next.ToLower(CultureInfo.InvariantCulture);
++#endif
++                    }
+ 
+ 					if (matchPartial)
+ 					{
+Index: csharp/crypto/src/openpgp/PgpUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/openpgp/PgpUtilities.cs,v
+retrieving revision 1.20
+diff -u -a -r1.20 PgpUtilities.cs
+--- csharp/crypto/src/openpgp/PgpUtilities.cs	15 Feb 2011 06:28:18 -0000	1.20
++++ csharp/crypto/src/openpgp/PgpUtilities.cs	19 Jan 2013 23:42:41 -0000
+@@ -298,6 +298,7 @@
+ 			return MakeKey(algorithm, keyBytes);
+         }
+ 
++#if !PORTABLE
+ 		/// <summary>Write out the passed in file as a literal data packet.</summary>
+         public static void WriteFileToLiteralData(
+             Stream		output,
+@@ -335,6 +336,7 @@
+ 			pOut.Close();
+ 			inputStream.Close();
+ 		}
++#endif
+ 
+ 		private const int ReadAhead = 60;
+ 
+Index: csharp/crypto/src/openssl/MiscPemGenerator.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/openssl/MiscPemGenerator.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 MiscPemGenerator.cs
+--- csharp/crypto/src/openssl/MiscPemGenerator.cs	18 Apr 2011 11:21:46 -0000	1.5
++++ csharp/crypto/src/openssl/MiscPemGenerator.cs	19 Jan 2013 23:42:41 -0000
+@@ -189,8 +189,11 @@
+ 				throw new PemGenerationException("Object type not supported: " + obj.GetType().FullName);
+ 			}
+ 
+-
++#if PORTABLE
++			string dekAlgName = algorithm.ToUpperInvariant();
++#else
+ 			string dekAlgName = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+ 			// Note: For backward compatibility
+ 			if (dekAlgName == "DESEDE")
+Index: csharp/crypto/src/pkcs/AsymmetricKeyEntry.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/pkcs/AsymmetricKeyEntry.cs,v
+retrieving revision 1.14
+diff -u -a -r1.14 AsymmetricKeyEntry.cs
+--- csharp/crypto/src/pkcs/AsymmetricKeyEntry.cs	19 Sep 2010 07:34:52 -0000	1.14
++++ csharp/crypto/src/pkcs/AsymmetricKeyEntry.cs	19 Jan 2013 23:42:41 -0000
+@@ -18,7 +18,7 @@
+             this.key = key;
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public AsymmetricKeyEntry(
+             AsymmetricKeyParameter key,
+Index: csharp/crypto/src/pkcs/Pkcs10CertificationRequest.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/pkcs/Pkcs10CertificationRequest.cs,v
+retrieving revision 1.24
+diff -u -a -r1.24 Pkcs10CertificationRequest.cs
+--- csharp/crypto/src/pkcs/Pkcs10CertificationRequest.cs	18 Apr 2011 10:49:08 -0000	1.24
++++ csharp/crypto/src/pkcs/Pkcs10CertificationRequest.cs	19 Jan 2013 23:42:41 -0000
+@@ -228,8 +228,12 @@
+ 				throw new ArgumentException("key for signing must be private", "signingKey");
+ 
+ //			DerObjectIdentifier sigOid = SignerUtilities.GetObjectIdentifier(signatureAlgorithm);
++#if PORTABLE
++            string algorithmName = signatureAlgorithm.ToUpperInvariant();
++#else
+ 			string algorithmName = signatureAlgorithm.ToUpper(CultureInfo.InvariantCulture);
+-			DerObjectIdentifier sigOid = (DerObjectIdentifier) algorithms[algorithmName];
++#endif
++            DerObjectIdentifier sigOid = (DerObjectIdentifier) algorithms[algorithmName];
+ 
+ 			if (sigOid == null)
+ 			{
+Index: csharp/crypto/src/pkcs/Pkcs10CertificationRequestDelaySigned.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/pkcs/Pkcs10CertificationRequestDelaySigned.cs,v
+retrieving revision 1.6
+diff -u -a -r1.6 Pkcs10CertificationRequestDelaySigned.cs
+--- csharp/crypto/src/pkcs/Pkcs10CertificationRequestDelaySigned.cs	22 Sep 2010 07:42:01 -0000	1.6
++++ csharp/crypto/src/pkcs/Pkcs10CertificationRequestDelaySigned.cs	19 Jan 2013 23:42:41 -0000
+@@ -104,8 +104,12 @@
+ 			if (publicKey.IsPrivate)
+ 				throw new ArgumentException("expected public key", "publicKey");
+ //			DerObjectIdentifier sigOid = SignerUtilities.GetObjectIdentifier(signatureAlgorithm);
++#if PORTABLE
++            string algorithmName = signatureAlgorithm.ToUpperInvariant();
++#else
+ 			string algorithmName = signatureAlgorithm.ToUpper(CultureInfo.InvariantCulture);
+-			DerObjectIdentifier sigOid = (DerObjectIdentifier) algorithms[algorithmName];
++#endif
++            DerObjectIdentifier sigOid = (DerObjectIdentifier) algorithms[algorithmName];
+ 			if (sigOid == null)
+ 			{
+ 				try
+Index: csharp/crypto/src/pkcs/Pkcs12Store.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/pkcs/Pkcs12Store.cs,v
+retrieving revision 1.48
+diff -u -a -r1.48 Pkcs12Store.cs
+--- csharp/crypto/src/pkcs/Pkcs12Store.cs	19 Sep 2010 07:34:52 -0000	1.48
++++ csharp/crypto/src/pkcs/Pkcs12Store.cs	19 Jan 2013 23:42:41 -0000
+@@ -259,9 +259,11 @@
+ 							}
+ 							else
+ 							{
++#if !PORTABLE
+ 								Console.WriteLine("extra " + b.BagID);
+ 								Console.WriteLine("extra " + Asn1Dump.DumpAsString(b));
+-							}
++#endif
++                            }
+ 						}
+ 					}
+ 					else if (oid.Equals(PkcsObjectIdentifiers.EncryptedData))
+@@ -417,16 +419,20 @@
+ 							}
+ 							else
+ 							{
++#if !PORTABLE
+ 								Console.WriteLine("extra " + b.BagID);
+ 								Console.WriteLine("extra " + Asn1Dump.DumpAsString(b));
+-							}
++#endif
++                            }
+ 						}
+ 					}
+ 					else
+ 					{
++#if !PORTABLE
+ 						Console.WriteLine("extra " + oid);
+ 						Console.WriteLine("extra " + Asn1Dump.DumpAsString(ci.Content));
+-					}
++#endif
++                    }
+ 				}
+ 			}
+ 
+@@ -1183,7 +1189,11 @@
+ 			public object Remove(
+ 				string alias)
+ 			{
++#if PORTABLE
++                string lower = alias.ToLowerInvariant();
++#else
+ 				string lower = alias.ToLower(CultureInfo.InvariantCulture);
++#endif
+ 				string k = (string) keys[lower];
+ 
+ 				if (k == null)
+@@ -1201,7 +1211,11 @@
+ 			{
+ 				get
+ 				{
++#if PORTABLE
++                    string lower = alias.ToLowerInvariant();
++#else
+ 					string lower = alias.ToLower(CultureInfo.InvariantCulture);
++#endif
+ 					string k = (string) keys[lower];
+ 
+ 					if (k == null)
+@@ -1211,8 +1225,12 @@
+ 				}
+ 				set
+ 				{
++#if PORTABLE
++				    string lower = alias.ToLowerInvariant();
++#else
+ 					string lower = alias.ToLower(CultureInfo.InvariantCulture);
+-					string k = (string) keys[lower];
++#endif
++                    string k = (string) keys[lower];
+ 					if (k != null)
+ 					{
+ 						orig.Remove(k);
+Index: csharp/crypto/src/pkcs/X509CertificateEntry.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/pkcs/X509CertificateEntry.cs,v
+retrieving revision 1.13
+diff -u -a -r1.13 X509CertificateEntry.cs
+--- csharp/crypto/src/pkcs/X509CertificateEntry.cs	19 Sep 2010 07:34:52 -0000	1.13
++++ csharp/crypto/src/pkcs/X509CertificateEntry.cs	19 Jan 2013 23:42:41 -0000
+@@ -18,7 +18,7 @@
+             this.cert = cert;
+         }
+ 
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+         [Obsolete]
+         public X509CertificateEntry(
+             X509Certificate	cert,
+Index: csharp/crypto/src/pkix/PkixCertPath.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/pkix/PkixCertPath.cs,v
+retrieving revision 1.8
+diff -u -a -r1.8 PkixCertPath.cs
+--- csharp/crypto/src/pkix/PkixCertPath.cs	22 Sep 2010 17:54:04 -0000	1.8
++++ csharp/crypto/src/pkix/PkixCertPath.cs	19 Jan 2013 23:42:41 -0000
+@@ -83,16 +83,16 @@
+ 	{
+ 		internal static readonly IList certPathEncodings;
+ 
+-        static PkixCertPath()
+-        {
+-            IList encodings = Platform.CreateArrayList();
+-            encodings.Add("PkiPath");
+-            encodings.Add("PEM");
+-            encodings.Add("PKCS7");
+-            certPathEncodings = CollectionUtilities.ReadOnly(encodings);
+-        }
++		static PkixCertPath()
++		{
++			IList encodings = Platform.CreateArrayList();
++			encodings.Add("PkiPath");
++			encodings.Add("PEM");
++			encodings.Add("PKCS7");
++			certPathEncodings = CollectionUtilities.ReadOnly(encodings);
++		}
+ 
+-        private readonly IList certificates;
++		private readonly IList certificates;
+ 
+ 		/**
+ 		 * @param certs
+@@ -125,8 +125,8 @@
+ 				return certs;
+ 
+ 			// find end-entity cert
+-            IList retList = Platform.CreateArrayList(certs.Count);
+-            IList orig = Platform.CreateArrayList(certs);
++			IList retList = Platform.CreateArrayList(certs.Count);
++			IList orig = Platform.CreateArrayList(certs);
+ 
+ 			for (int i = 0; i < certs.Count; i++)
+ 			{
+@@ -208,9 +208,9 @@
+ 			string	encoding)
+ //			: base("X.509")
+ 		{
+-            string upper = encoding.ToUpper();
++			string upper = encoding.ToUpper();
+ 
+-            IList certs;
++			IList certs;
+ 			try
+ 			{
+ 				if (upper.Equals("PkiPath".ToUpper()))
+@@ -223,20 +223,20 @@
+ 							"input stream does not contain a ASN1 SEQUENCE while reading PkiPath encoded data to load CertPath");
+ 					}
+ 
+-                    certs = Platform.CreateArrayList();
++					certs = Platform.CreateArrayList();
+ 
+-                    foreach (Asn1Encodable ae in (Asn1Sequence)derObject)
+-                    {
+-                        byte[] derBytes = ae.GetEncoded(Asn1Encodable.Der);
+-                        Stream certInStream = new MemoryStream(derBytes, false);
++					foreach (Asn1Encodable ae in (Asn1Sequence)derObject)
++					{
++						byte[] derBytes = ae.GetEncoded(Asn1Encodable.Der);
++						Stream certInStream = new MemoryStream(derBytes, false);
+ 
+-                        // TODO Is inserting at the front important (list will be sorted later anyway)?
+-                        certs.Insert(0, new X509CertificateParser().ReadCertificate(certInStream));
++						// TODO Is inserting at the front important (list will be sorted later anyway)?
++						certs.Insert(0, new X509CertificateParser().ReadCertificate(certInStream));
+ 					}
+ 				}
+-                else if (upper.Equals("PKCS7") || upper.Equals("PEM"))
++				else if (upper.Equals("PKCS7") || upper.Equals("PEM"))
+ 				{
+-                    certs = Platform.CreateArrayList(new X509CertificateParser().ReadCertificates(inStream));
++					certs = Platform.CreateArrayList(new X509CertificateParser().ReadCertificates(inStream));
+ 				}
+ 				else
+ 				{
+@@ -263,7 +263,7 @@
+ 		 **/
+ 		public virtual IEnumerable Encodings
+ 		{
+-            get { return new EnumerableProxy(certPathEncodings); }
++			get { return new EnumerableProxy(certPathEncodings); }
+ 		}
+ 
+ 		/**
+@@ -368,7 +368,7 @@
+ 
+ 				return ToDerEncoded(new DerSequence(v));
+ 			}
+-            else if (Platform.CompareIgnoreCase(encoding, "PKCS7") == 0)
++			else if (Platform.CompareIgnoreCase(encoding, "PKCS7") == 0)
+ 			{
+ 				Asn1.Pkcs.ContentInfo encInfo = new Asn1.Pkcs.ContentInfo(
+ 					PkcsObjectIdentifiers.Data, null);
+@@ -389,7 +389,7 @@
+ 
+ 				return ToDerEncoded(new Asn1.Pkcs.ContentInfo(PkcsObjectIdentifiers.SignedData, sd));
+ 			}
+-            else if (Platform.CompareIgnoreCase(encoding, "PEM") == 0)
++			else if (Platform.CompareIgnoreCase(encoding, "PEM") == 0)
+ 			{
+ 				MemoryStream bOut = new MemoryStream();
+ 				PemWriter pWrt = new PemWriter(new StreamWriter(bOut));
+@@ -400,8 +400,11 @@
+ 					{
+ 						pWrt.WriteObject(certificates[i]);
+ 					}
+-
++#if PORTABLE
++					pWrt.Writer.Dispose();
++#else
+ 					pWrt.Writer.Close();
++#endif
+ 				}
+ 				catch (Exception)
+ 				{
+@@ -422,7 +425,7 @@
+ 		/// </summary>
+ 		public virtual IList Certificates
+ 		{
+-            get { return CollectionUtilities.ReadOnly(certificates); }
++			get { return CollectionUtilities.ReadOnly(certificates); }
+ 		}
+ 
+ 		/**
+Index: csharp/crypto/src/security/AgreementUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/AgreementUtilities.cs,v
+retrieving revision 1.9
+diff -u -a -r1.9 AgreementUtilities.cs
+--- csharp/crypto/src/security/AgreementUtilities.cs	10 Mar 2011 05:08:25 -0000	1.9
++++ csharp/crypto/src/security/AgreementUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -39,8 +39,12 @@
+ 		public static IBasicAgreement GetBasicAgreement(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++            string upper = algorithm.ToUpperInvariant();
++#else
+ 			string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
+-			string mechanism = (string) algorithms[upper];
++#endif
++            string mechanism = (string) algorithms[upper];
+ 
+ 			if (mechanism == null)
+ 			{
+@@ -73,8 +77,12 @@
+ 			string agreeAlgorithm,
+ 			string wrapAlgorithm)
+ 		{
++#if PORTABLE
++            string upper = agreeAlgorithm.ToUpperInvariant();
++#else
+ 			string upper = agreeAlgorithm.ToUpper(CultureInfo.InvariantCulture);
+-			string mechanism = (string) algorithms[upper];
++#endif
++            string mechanism = (string) algorithms[upper];
+ 
+ 			if (mechanism == null)
+ 			{
+Index: csharp/crypto/src/security/CipherUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/CipherUtilities.cs,v
+retrieving revision 1.56
+diff -u -a -r1.56 CipherUtilities.cs
+--- csharp/crypto/src/security/CipherUtilities.cs	17 Mar 2011 04:08:09 -0000	1.56
++++ csharp/crypto/src/security/CipherUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -99,7 +99,7 @@
+ 		};
+ 
+ 		private static readonly IDictionary algorithms = Platform.CreateHashtable();
+-        private static readonly IDictionary oids = Platform.CreateHashtable();
++		private static readonly IDictionary oids = Platform.CreateHashtable();
+ 
+ 		static CipherUtilities()
+ 		{
+@@ -220,7 +220,11 @@
+ 			if (mechanism == null)
+ 				throw new ArgumentNullException("mechanism");
+ 
++#if PORTABLE
++			mechanism = mechanism.ToUpperInvariant();
++#else
+ 			mechanism = mechanism.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 			string aliased = (string) algorithms[mechanism];
+ 
+ 			if (aliased != null)
+@@ -246,7 +250,11 @@
+ 			if (algorithm == null)
+ 				throw new ArgumentNullException("algorithm");
+ 
++#if PORTABLE
++			algorithm = algorithm.ToUpperInvariant();
++#else
+ 			algorithm = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+ 			string aliased = (string) algorithms[algorithm];
+ 
+Index: csharp/crypto/src/security/DigestUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/DigestUtilities.cs,v
+retrieving revision 1.23
+diff -u -a -r1.23 DigestUtilities.cs
+--- csharp/crypto/src/security/DigestUtilities.cs	17 Mar 2011 04:08:09 -0000	1.23
++++ csharp/crypto/src/security/DigestUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -95,8 +95,12 @@
+ 			if (mechanism == null)
+ 				throw new System.ArgumentNullException("mechanism");
+ 
++#if PORTABLE
++            mechanism = mechanism.ToUpperInvariant();
++#else
+ 			mechanism = mechanism.ToUpper(CultureInfo.InvariantCulture);
+-			string aliased = (string) algorithms[mechanism];
++#endif
++            string aliased = (string) algorithms[mechanism];
+ 
+ 			if (aliased != null)
+ 				mechanism = aliased;
+@@ -118,7 +122,11 @@
+         public static IDigest GetDigest(
+ 			string algorithm)
+         {
++#if PORTABLE
++            string upper = algorithm.ToUpperInvariant();
++#else
+ 			string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+             string mechanism = (string) algorithms[upper];
+ 
+ 			if (mechanism == null)
+Index: csharp/crypto/src/security/DotNetUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/DotNetUtilities.cs,v
+retrieving revision 1.16
+diff -u -a -r1.16 DotNetUtilities.cs
+--- csharp/crypto/src/security/DotNetUtilities.cs	1 Sep 2011 12:40:10 -0000	1.16
++++ csharp/crypto/src/security/DotNetUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -1,4 +1,4 @@
+-#if !(NETCF_1_0 || SILVERLIGHT)
++#if !(NETCF_1_0 || SILVERLIGHT || PORTABLE)
+ 
+ using System;
+ using System.Security.Cryptography;
+Index: csharp/crypto/src/security/GeneratorUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/GeneratorUtilities.cs,v
+retrieving revision 1.21
+diff -u -a -r1.21 GeneratorUtilities.cs
+--- csharp/crypto/src/security/GeneratorUtilities.cs	10 Mar 2011 05:08:25 -0000	1.21
++++ csharp/crypto/src/security/GeneratorUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -232,15 +232,23 @@
+ 		internal static string GetCanonicalKeyGeneratorAlgorithm(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++            return (string)kgAlgorithms[algorithm.ToUpperInvariant()];
++#else
+ 			return (string) kgAlgorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
+-		}
++#endif
++        }
+ 
+ 		// TODO Consider making this public
+ 		internal static string GetCanonicalKeyPairGeneratorAlgorithm(
+ 			string algorithm)
+-		{
+-			return (string) kpgAlgorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
+-		}
++        {
++#if PORTABLE
++            return (string)kpgAlgorithms[algorithm.ToUpperInvariant()];
++#else
++            return (string) kpgAlgorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
++        }
+ 
+ 		public static CipherKeyGenerator GetKeyGenerator(
+ 			DerObjectIdentifier oid)
+Index: csharp/crypto/src/security/MacUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/MacUtilities.cs,v
+retrieving revision 1.17
+diff -u -a -r1.17 MacUtilities.cs
+--- csharp/crypto/src/security/MacUtilities.cs	18 Apr 2011 10:49:08 -0000	1.17
++++ csharp/crypto/src/security/MacUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -103,9 +103,13 @@
+ 		public static IMac GetMac(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++            string upper = algorithm.ToUpperInvariant();
++#else
+ 			string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			string mechanism = (string) algorithms[upper];
++            string mechanism = (string) algorithms[upper];
+ 
+ 			if (mechanism == null)
+ 			{
+Index: csharp/crypto/src/security/ParameterUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/ParameterUtilities.cs,v
+retrieving revision 1.24
+diff -u -a -r1.24 ParameterUtilities.cs
+--- csharp/crypto/src/security/ParameterUtilities.cs	10 Mar 2011 05:08:25 -0000	1.24
++++ csharp/crypto/src/security/ParameterUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -143,7 +143,11 @@
+ 		public static string GetCanonicalAlgorithmName(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++			return (string)algorithms[algorithm.ToUpperInvariant()];
++#else
+ 			return (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 		}
+ 
+ 		public static KeyParameter CreateKeyParameter(
+Index: csharp/crypto/src/security/PbeUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/PbeUtilities.cs,v
+retrieving revision 1.31
+diff -u -a -r1.31 PbeUtilities.cs
+--- csharp/crypto/src/security/PbeUtilities.cs	19 Sep 2010 07:34:52 -0000	1.31
++++ csharp/crypto/src/security/PbeUtilities.cs	19 Jan 2013 23:42:42 -0000
+@@ -245,8 +245,12 @@
+ 		public static DerObjectIdentifier GetObjectIdentifier(
+ 			string mechanism)
+ 		{
++#if PORTABLE
++            mechanism = (string)algorithms[mechanism.ToUpperInvariant()];
++#else
+ 			mechanism = (string) algorithms[mechanism.ToUpper(CultureInfo.InvariantCulture)];
+-			if (mechanism != null)
++#endif
++            if (mechanism != null)
+ 			{
+ 				return (DerObjectIdentifier)oids[mechanism];
+ 			}
+@@ -261,15 +265,23 @@
+ 		public static bool IsPkcs12(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
+ 			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+-			return mechanism != null && Pkcs12.Equals(algorithmType[mechanism]);
++            return mechanism != null && Pkcs12.Equals(algorithmType[mechanism]);
+ 		}
+ 
+ 		public static bool IsPkcs5Scheme1(
+ 			string algorithm)
+ 		{
+-			string mechanism = (string)algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
++			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			return mechanism != null && Pkcs5S1.Equals(algorithmType[mechanism]);
+ 		}
+@@ -277,7 +289,11 @@
+ 		public static bool IsPkcs5Scheme2(
+ 			string algorithm)
+ 		{
+-			string mechanism = (string)algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
++			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			return mechanism != null && Pkcs5S2.Equals(algorithmType[mechanism]);
+ 		}
+@@ -285,7 +301,11 @@
+ 		public static bool IsOpenSsl(
+ 			string algorithm)
+ 		{
+-			string mechanism = (string)algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
++			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			return mechanism != null && OpenSsl.Equals(algorithmType[mechanism]);
+ 		}
+@@ -293,7 +313,11 @@
+ 		public static bool IsPbeAlgorithm(
+ 			string algorithm)
+ 		{
+-			string mechanism = (string)algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
++			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			return mechanism != null && algorithmType[mechanism] != null;
+ 		}
+@@ -371,7 +395,11 @@
+ 			bool			wrongPkcs12Zero,
+ 			Asn1Encodable   pbeParameters)
+ 		{
+-			string	mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
++			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			byte[] keyBytes = null;
+ 			byte[] salt = null;
+@@ -593,7 +621,11 @@
+ 		public static object CreateEngine(
+ 			string algorithm)
+ 		{
+-			string mechanism = (string)algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#if PORTABLE
++            string mechanism = (string)algorithms[algorithm.ToUpperInvariant()];
++#else
++			string mechanism = (string) algorithms[algorithm.ToUpper(CultureInfo.InvariantCulture)];
++#endif
+ 
+ 			if (mechanism.StartsWith("PBEwithHmac"))
+ 			{
+Index: csharp/crypto/src/security/SecureRandom.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/SecureRandom.cs,v
+retrieving revision 1.35
+diff -u -a -r1.35 SecureRandom.cs
+--- csharp/crypto/src/security/SecureRandom.cs	10 Mar 2011 05:08:25 -0000	1.35
++++ csharp/crypto/src/security/SecureRandom.cs	19 Jan 2013 23:42:42 -0000
+@@ -41,9 +41,13 @@
+ 			// TODO Compared to JDK, we don't auto-seed if the client forgets - problem?
+ 
+ 			// TODO Support all digests more generally, by stripping PRNG and calling DigestUtilities?
++#if PORTABLE
++            string drgName = algorithm.ToUpperInvariant();
++#else
+ 			string drgName = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			IRandomGenerator drg = null;
++            IRandomGenerator drg = null;
+ 			if (drgName == "SHA1PRNG")
+ 			{
+ 				drg = sha1Generator;
+Index: csharp/crypto/src/security/SignerUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/SignerUtilities.cs,v
+retrieving revision 1.34
+diff -u -a -r1.34 SignerUtilities.cs
+--- csharp/crypto/src/security/SignerUtilities.cs	10 Mar 2011 05:08:25 -0000	1.34
++++ csharp/crypto/src/security/SignerUtilities.cs	19 Jan 2013 23:42:43 -0000
+@@ -276,8 +276,12 @@
+ 			if (mechanism == null)
+ 				throw new ArgumentNullException("mechanism");
+ 
++#if PORTABLE
++            mechanism = mechanism.ToUpperInvariant();
++#else
+ 			mechanism = mechanism.ToUpper(CultureInfo.InvariantCulture);
+-			string aliased = (string) algorithms[mechanism];
++#endif
++            string aliased = (string) algorithms[mechanism];
+ 
+ 			if (aliased != null)
+ 				mechanism = aliased;
+@@ -302,9 +306,13 @@
+ 			if (algorithm == null)
+ 				throw new ArgumentNullException("algorithm");
+ 
+-			algorithm = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#if PORTABLE
++            algorithm = algorithm.ToUpperInvariant();
++#else
++            algorithm = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			string mechanism = (string) algorithms[algorithm];
++            string mechanism = (string) algorithms[algorithm];
+ 
+ 			if (mechanism == null)
+ 				mechanism = algorithm;
+@@ -352,9 +360,13 @@
+ 			if (algorithm == null)
+ 				throw new ArgumentNullException("algorithm");
+ 
+-			algorithm = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#if PORTABLE
++            algorithm = algorithm.ToUpperInvariant();
++#else
++            algorithm = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			string mechanism = (string) algorithms[algorithm];
++            string mechanism = (string) algorithms[algorithm];
+ 
+ 			if (mechanism == null)
+ 				mechanism = algorithm;
+Index: csharp/crypto/src/security/WrapperUtilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/security/WrapperUtilities.cs,v
+retrieving revision 1.14
+diff -u -a -r1.14 WrapperUtilities.cs
+--- csharp/crypto/src/security/WrapperUtilities.cs	31 Aug 2011 13:50:52 -0000	1.14
++++ csharp/crypto/src/security/WrapperUtilities.cs	19 Jan 2013 23:42:43 -0000
+@@ -26,7 +26,7 @@
+ 		}
+ 
+ 		private static readonly IDictionary algorithms = Platform.CreateHashtable();
+-        //private static readonly IDictionary oids = Platform.CreateHashtable();
++		//private static readonly IDictionary oids = Platform.CreateHashtable();
+ 
+ 		static WrapperUtilities()
+ 		{
+@@ -57,7 +57,11 @@
+ 		public static IWrapper GetWrapper(
+ 			string algorithm)
+ 		{
++#if PORTABLE
++			string upper = algorithm.ToUpperInvariant();
++#else
+ 			string upper = algorithm.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 			string mechanism = (string) algorithms[upper];
+ 
+ 			if (mechanism == null)
+Index: csharp/crypto/src/util/Enums.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/Enums.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 Enums.cs
+--- csharp/crypto/src/util/Enums.cs	1 Sep 2011 08:17:39 -0000	1.5
++++ csharp/crypto/src/util/Enums.cs	19 Jan 2013 23:42:43 -0000
+@@ -1,7 +1,7 @@
+ using System;
+ using System.Text;
+ 
+-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
++#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
+ using System.Collections;
+ using System.Reflection;
+ #endif
+@@ -45,7 +45,7 @@
+ 			if (!enumType.IsEnum)
+ 				throw new ArgumentException("Not an enumeration type", "enumType");
+ 
+-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
++#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
+             IList result = Platform.CreateArrayList();
+ 			FieldInfo[] fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
+ 			foreach (FieldInfo field in fields)
+Index: csharp/crypto/src/util/Platform.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/Platform.cs,v
+retrieving revision 1.8
+diff -u -a -r1.8 Platform.cs
+--- csharp/crypto/src/util/Platform.cs	22 Sep 2010 13:28:22 -0000	1.8
++++ csharp/crypto/src/util/Platform.cs	19 Jan 2013 23:42:43 -0000
+@@ -2,8 +2,9 @@
+ using System.IO;
+ using System.Text;
+ 
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+ using System.Collections.Generic;
++using System.Globalization;
+ #else
+ using System.Collections;
+ #endif
+@@ -37,13 +38,15 @@
+         {
+ #if SILVERLIGHT
+             return String.Compare(a, b, StringComparison.InvariantCultureIgnoreCase);
++#elif PORTABLE
++            return String.Compare(a, b, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase);
+ #else
+             return String.Compare(a, b, true);
+ #endif
+         }
+ 
+-#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT
+-		internal static string GetEnvironmentVariable(
++#if NETCF_1_0 || NETCF_2_0 || SILVERLIGHT || PORTABLE
++        internal static string GetEnvironmentVariable(
+ 			string variable)
+ 		{
+ 			return null;
+@@ -86,7 +89,7 @@
+ 		}
+ #endif
+ 
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+         internal static System.Collections.IList CreateArrayList()
+         {
+             return new List<object>();
+Index: csharp/crypto/src/util/Strings.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/Strings.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 Strings.cs
+--- csharp/crypto/src/util/Strings.cs	10 Mar 2011 05:08:25 -0000	1.5
++++ csharp/crypto/src/util/Strings.cs	19 Jan 2013 23:42:43 -0000
+@@ -56,7 +56,7 @@
+         public static string FromAsciiByteArray(
+             byte[] bytes)
+         {
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+             // TODO Check for non-ASCII bytes in input?
+             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+ #else
+@@ -67,7 +67,7 @@
+         public static byte[] ToAsciiByteArray(
+             char[] cs)
+         {
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+             // TODO Check for non-ASCII characters in input?
+             return Encoding.UTF8.GetBytes(cs);
+ #else
+@@ -78,7 +78,7 @@
+         public static byte[] ToAsciiByteArray(
+             string s)
+         {
+-#if SILVERLIGHT
++#if SILVERLIGHT || PORTABLE
+             // TODO Check for non-ASCII characters in input?
+             return Encoding.UTF8.GetBytes(s);
+ #else
+Index: csharp/crypto/src/util/io/BaseInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/io/BaseInputStream.cs,v
+retrieving revision 1.3
+diff -u -a -r1.3 BaseInputStream.cs
+--- csharp/crypto/src/util/io/BaseInputStream.cs	17 Nov 2006 15:40:23 -0000	1.3
++++ csharp/crypto/src/util/io/BaseInputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -11,8 +11,12 @@
+ 		public sealed override bool CanRead { get { return !closed; } }
+         public sealed override bool CanSeek { get { return false; } }
+         public sealed override bool CanWrite { get { return false; } }
++#if PORTABLE
++        public virtual void Close() { closed = true; }
++#else
+ 		public override void Close() { closed = true; }
+-		public sealed override void Flush() {}
++#endif
++        public sealed override void Flush() {}
+         public sealed override long Length { get { throw new NotSupportedException(); } }
+         public sealed override long Position
+         {
+Index: csharp/crypto/src/util/io/BaseOutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/io/BaseOutputStream.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 BaseOutputStream.cs
+--- csharp/crypto/src/util/io/BaseOutputStream.cs	20 Nov 2006 04:29:47 -0000	1.5
++++ csharp/crypto/src/util/io/BaseOutputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -11,7 +11,11 @@
+ 		public sealed override bool CanRead { get { return false; } }
+         public sealed override bool CanSeek { get { return false; } }
+         public sealed override bool CanWrite { get { return !closed; } }
++#if PORTABLE
++        public virtual void Close() { closed = true; }
++#else
+ 		public override void Close() { closed = true; }
++#endif
+         public override void Flush() {}
+         public sealed override long Length { get { throw new NotSupportedException(); } }
+         public sealed override long Position
+Index: csharp/crypto/src/util/io/TeeInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/io/TeeInputStream.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 TeeInputStream.cs
+--- csharp/crypto/src/util/io/TeeInputStream.cs	8 Feb 2011 06:18:00 -0000	1.1
++++ csharp/crypto/src/util/io/TeeInputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -20,8 +20,13 @@
+ 
+ 		public override void Close()
+ 		{
++#if PORTABLE
++			input.Dispose();
++			tee.Dispose();
++#else
+ 			input.Close();
+ 			tee.Close();
++#endif
+ 		}
+ 
+ 		public override int Read(byte[] buf, int off, int len)
+Index: csharp/crypto/src/util/io/TeeOutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/io/TeeOutputStream.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 TeeOutputStream.cs
+--- csharp/crypto/src/util/io/TeeOutputStream.cs	22 Sep 2010 14:55:01 -0000	1.1
++++ csharp/crypto/src/util/io/TeeOutputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -4,7 +4,7 @@
+ 
+ namespace Org.BouncyCastle.Utilities.IO
+ {
+-    public class TeeOutputStream
++	public class TeeOutputStream
+ 		: BaseOutputStream
+ 	{
+ 		private readonly Stream output, tee;
+@@ -20,8 +20,13 @@
+ 
+ 		public override void Close()
+ 		{
++#if PORTABLE
++			output.Dispose();
++			tee.Dispose();
++#else
+ 			output.Close();
+ 			tee.Close();
++#endif
+ 		}
+ 
+ 		public override void Write(byte[] buffer, int offset, int count)
+Index: csharp/crypto/src/util/zlib/ZDeflaterOutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/zlib/ZDeflaterOutputStream.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 ZDeflaterOutputStream.cs
+--- csharp/crypto/src/util/zlib/ZDeflaterOutputStream.cs	15 Feb 2011 05:45:42 -0000	1.5
++++ csharp/crypto/src/util/zlib/ZDeflaterOutputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -136,15 +136,23 @@
+             z=null;
+         }
+         
++#if PORTABLE
++        public virtual void Close() {
++#else
+         public override void Close() {
++#endif
+             try{
+                 try{Finish();}
+                 catch (IOException) {}
+             }
+             finally{
+                 End();
++#if PORTABLE
++                outp.Dispose();
++#else
+                 outp.Close();
+-                outp=null;
++#endif
++                outp =null;
+             }
+         }
+     }
+Index: csharp/crypto/src/util/zlib/ZInflaterInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/zlib/ZInflaterInputStream.cs,v
+retrieving revision 1.5
+diff -u -a -r1.5 ZInflaterInputStream.cs
+--- csharp/crypto/src/util/zlib/ZInflaterInputStream.cs	15 Feb 2011 04:58:40 -0000	1.5
++++ csharp/crypto/src/util/zlib/ZInflaterInputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -114,10 +114,17 @@
+         public override void WriteByte(byte b) {
+         }
+ 
++#if PORTABLE
++        public virtual void Close()
++        {
++            inp.Dispose();
++        }
++#else
+         public override void Close() {
+             inp.Close();
+         }
+-    
++#endif
++
+         public override int ReadByte() {
+             if(Read(buf1, 0, 1)<=0)
+                 return -1;
+Index: csharp/crypto/src/util/zlib/ZInputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/zlib/ZInputStream.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 ZInputStream.cs
+--- csharp/crypto/src/util/zlib/ZInputStream.cs	15 Feb 2011 05:47:13 -0000	1.1
++++ csharp/crypto/src/util/zlib/ZInputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -93,13 +93,21 @@
+ 		public sealed override bool CanSeek { get { return false; } }
+ 		public sealed override bool CanWrite { get { return false; } }
+ 
++#if PORTABLE
++        public virtual void Close()
++#else
+ 		public override void Close()
++#endif
+ 		{
+ 			if (!closed)
+ 			{
+ 				closed = true;
++#if PORTABLE
++                input.Dispose();
++#else
+ 				input.Close();
+-			}
++#endif
++            }
+ 		}
+ 
+ 		public sealed override void Flush() {}
+Index: csharp/crypto/src/util/zlib/ZOutputStream.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/util/zlib/ZOutputStream.cs,v
+retrieving revision 1.1
+diff -u -a -r1.1 ZOutputStream.cs
+--- csharp/crypto/src/util/zlib/ZOutputStream.cs	15 Feb 2011 05:47:13 -0000	1.1
++++ csharp/crypto/src/util/zlib/ZOutputStream.cs	19 Jan 2013 23:42:44 -0000
+@@ -83,7 +83,11 @@
+         public sealed override bool CanSeek { get { return false; } }
+         public sealed override bool CanWrite { get { return !closed; } }
+ 
++#if PORTABLE
++        public virtual void Close()
++#else
+ 		public override void Close()
++#endif
+ 		{
+ 			if (this.closed)
+ 				return;
+@@ -103,8 +107,12 @@
+ 			{
+ 				this.closed = true;
+ 				End();
++#if PORTABLE
++                output.Dispose();
++#else
+ 				output.Close();
+-				output = null;
++#endif
++                output = null;
+ 			}
+ 		}
+ 
+Index: csharp/crypto/src/x509/X509Utilities.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/x509/X509Utilities.cs,v
+retrieving revision 1.16
+diff -u -a -r1.16 X509Utilities.cs
+--- csharp/crypto/src/x509/X509Utilities.cs	18 Apr 2011 10:49:08 -0000	1.16
++++ csharp/crypto/src/x509/X509Utilities.cs	19 Jan 2013 23:42:45 -0000
+@@ -124,9 +124,13 @@
+ 		internal static DerObjectIdentifier GetAlgorithmOid(
+ 			string algorithmName)
+ 		{
++#if PORTABLE
++            algorithmName = algorithmName.ToUpperInvariant();
++#else
+ 			algorithmName = algorithmName.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+-			if (algorithms.Contains(algorithmName))
++            if (algorithms.Contains(algorithmName))
+ 			{
+ 				return (DerObjectIdentifier) algorithms[algorithmName];
+ 			}
+@@ -143,7 +147,11 @@
+ 				return new AlgorithmIdentifier(sigOid);
+ 			}
+ 
++#if PORTABLE
++            algorithmName = algorithmName.ToUpperInvariant();
++#else
+ 			algorithmName = algorithmName.ToUpper(CultureInfo.InvariantCulture);
++#endif
+ 
+ 			if (exParams.Contains(algorithmName))
+ 			{
+Index: csharp/crypto/src/x509/store/IX509Selector.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/x509/store/IX509Selector.cs,v
+retrieving revision 1.2
+diff -u -a -r1.2 IX509Selector.cs
+--- csharp/crypto/src/x509/store/IX509Selector.cs	19 Sep 2010 07:34:53 -0000	1.2
++++ csharp/crypto/src/x509/store/IX509Selector.cs	19 Jan 2013 23:42:45 -0000
+@@ -3,11 +3,11 @@
+ namespace Org.BouncyCastle.X509.Store
+ {
+ 	public interface IX509Selector
+-#if !SILVERLIGHT
++#if !(SILVERLIGHT || PORTABLE)
+ 		: ICloneable
+ #endif
+-	{
+-#if SILVERLIGHT
++    {
++#if SILVERLIGHT || PORTABLE
+         object Clone();
+ #endif
+         bool Match(object obj);
+Index: csharp/crypto/src/x509/store/X509StoreFactory.cs
+===================================================================
+RCS file: /home/users/bouncy/cvsroot/csharp/crypto/src/x509/store/X509StoreFactory.cs,v
+retrieving revision 1.2
+diff -u -a -r1.2 X509StoreFactory.cs
+--- csharp/crypto/src/x509/store/X509StoreFactory.cs	31 Aug 2008 11:08:02 -0000	1.2
++++ csharp/crypto/src/x509/store/X509StoreFactory.cs	19 Jan 2013 23:42:45 -0000
+@@ -17,7 +17,11 @@
+ 			if (type == null)
+ 				throw new ArgumentNullException("type");
+ 
++#if PORTABLE
++			string[] parts = type.ToUpperInvariant().Split('/');
++#else
+ 			string[] parts = type.ToUpper(CultureInfo.InvariantCulture).Split('/');
++#endif
+ 
+ 			if (parts.Length < 2)
+ 				throw new ArgumentException("type");

@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void AddOne(uint[] x, uint[] z)
         {
-            Array.Copy(x, 0, z, 0, 8);
+            Nat256.Copy(x, z);
             uint c = Nat256.Inc(z, 0);
             if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
             {
@@ -88,8 +88,20 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         public static void Reduce(uint[] xx, uint[] z)
         {
-            ulong c = Nat256.Mul33AddExt(PInv33, xx, 8, xx, 0, z, 0);
+            ulong c = Nat256.Mul33Add(PInv33, xx, 8, xx, 0, z, 0);
             c = Nat256.Mul33DWordAdd(PInv33, c, z, 0);
+
+            Debug.Assert(c == 0 || c == 1);
+
+            if (c != 0 || (z[7] == P7 && Nat256.Gte(z, P)))
+            {
+                Nat256.AddDWord(PInv, z, 0);
+            }
+        }
+
+        public static void Reduce32(uint x, uint[] z)
+        {
+            uint c = Nat256.Mul33WordAdd(PInv33, x, z, 0);
 
             Debug.Assert(c == 0 || c == 1);
 
