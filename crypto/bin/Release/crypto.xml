@@ -2340,13 +2340,6 @@
         <member name="M:Org.BouncyCastle.Asn1.DerUniversalString.#ctor(System.Byte[])">
             basic constructor - byte encoded string.
         </member>
-        <member name="T:Org.BouncyCastle.Asn1.DerUnknownTag">
-            We insert one of these when we find a tag we don't recognise.
-        </member>
-        <member name="M:Org.BouncyCastle.Asn1.DerUnknownTag.#ctor(System.Int32,System.Byte[])">
-            @param tag the tag value.
-            @param data the contents octets.
-        </member>
         <member name="T:Org.BouncyCastle.Asn1.DerUtcTime">
             UTC time object.
         </member>
@@ -3321,7 +3314,7 @@
              namingAuthorityUrl, or by a combination of them. For example, the text string
              can contain the name of the authority, the country and the name of the title
              register. The URL-option refers to a web page which contains lists with
-             �officially� registered professions (text and possibly OID) as well as
+             officially registered professions (text and possibly OID) as well as
              further information on these professions. Object identifiers for the
              component namingAuthorityId are grouped under the OID-branch
              id-isis-at-namingAuthorities and must be applied for.</li>
@@ -4410,7 +4403,7 @@
         <member name="F:Org.BouncyCastle.Asn1.Smime.SmimeCapabilities.PreferSignedData">
             general preferences
         </member>
-        <member name="F:Org.BouncyCastle.Asn1.Smime.SmimeCapabilities.DesCbc">
+        <member name="F:Org.BouncyCastle.Asn1.Smime.SmimeCapabilities.Aes256Cbc">
             encryption algorithms preferences
         </member>
         <member name="M:Org.BouncyCastle.Asn1.Smime.SmimeCapabilities.GetInstance(System.Object)">
@@ -5330,21 +5323,20 @@
         <member name="M:Org.BouncyCastle.Asn1.X509.NoticeReference.#ctor(System.String,System.Collections.IList)">
              Creates a new <code>NoticeReference</code> instance.
             
-             @param orgName a <code>string</code> value
-             @param numbers a <code>ArrayList</code> value
+             @param organization a <code>String</code> value
+             @param numbers a <code>Vector</code> value
         </member>
-        <member name="M:Org.BouncyCastle.Asn1.X509.NoticeReference.#ctor(System.String,Org.BouncyCastle.Asn1.Asn1Sequence)">
+        <member name="M:Org.BouncyCastle.Asn1.X509.NoticeReference.#ctor(System.String,Org.BouncyCastle.Asn1.Asn1EncodableVector)">
              Creates a new <code>NoticeReference</code> instance.
             
-             @param orgName a <code>string</code> value
-             @param numbers an <code>Asn1Sequence</code> value
+             @param organization a <code>String</code> value
+             @param noticeNumbers an <code>ASN1EncodableVector</code> value
         </member>
-        <member name="M:Org.BouncyCastle.Asn1.X509.NoticeReference.#ctor(System.Int32,System.String,Org.BouncyCastle.Asn1.Asn1Sequence)">
+        <member name="M:Org.BouncyCastle.Asn1.X509.NoticeReference.#ctor(Org.BouncyCastle.Asn1.X509.DisplayText,Org.BouncyCastle.Asn1.Asn1EncodableVector)">
              Creates a new <code>NoticeReference</code> instance.
             
-             @param displayTextType an <code>int</code> value
-             @param orgName a <code>string</code> value
-             @param numbers an <code>Asn1Sequence</code> value
+             @param organization displayText
+             @param noticeNumbers an <code>ASN1EncodableVector</code> value
         </member>
         <member name="M:Org.BouncyCastle.Asn1.X509.NoticeReference.#ctor(Org.BouncyCastle.Asn1.Asn1Sequence)">
              Creates a new <code>NoticeReference</code> instance.
@@ -6806,23 +6798,12 @@
             @param dirName the string dirName
             @param converter the converter to convert string values into their ASN.1 equivalents
         </member>
-        <member name="M:Org.BouncyCastle.Asn1.X509.X509Name.GetOids">
-            return an ArrayList of the oids in the name, in the order they were found.
-        </member>
         <member name="M:Org.BouncyCastle.Asn1.X509.X509Name.GetOidList">
             return an IList of the oids in the name, in the order they were found.
-        </member>
-        <member name="M:Org.BouncyCastle.Asn1.X509.X509Name.GetValues">
-            return an ArrayList of the values found in the name, in the order they
-            were found.
         </member>
         <member name="M:Org.BouncyCastle.Asn1.X509.X509Name.GetValueList">
             return an IList of the values found in the name, in the order they
             were found.
-        </member>
-        <member name="M:Org.BouncyCastle.Asn1.X509.X509Name.GetValues(Org.BouncyCastle.Asn1.DerObjectIdentifier)">
-            return an ArrayList of the values found in the name, in the order they
-            were found, with the DN label corresponding to passed in oid.
         </member>
         <member name="M:Org.BouncyCastle.Asn1.X509.X509Name.GetValueList(Org.BouncyCastle.Asn1.DerObjectIdentifier)">
             return an IList of the values found in the name, in the order they
@@ -6857,6 +6838,34 @@
             java.util.StringTokenizer. We need this class as some of the
             lightweight Java environment don't support classes like
             StringTokenizer.
+        </member>
+        <member name="T:Org.BouncyCastle.Asn1.X9.ECNamedCurveTable">
+            A general class that reads all X9.62 style EC curve tables.
+        </member>
+        <member name="M:Org.BouncyCastle.Asn1.X9.ECNamedCurveTable.GetByName(System.String)">
+             return a X9ECParameters object representing the passed in named
+             curve. The routine returns null if the curve is not present.
+            
+             @param name the name of the curve requested
+             @return an X9ECParameters object or null if the curve is not available.
+        </member>
+        <member name="M:Org.BouncyCastle.Asn1.X9.ECNamedCurveTable.GetOid(System.String)">
+             return the object identifier signified by the passed in name. Null
+             if there is no object identifier associated with name.
+            
+             @return the object identifier associated with name, if present.
+        </member>
+        <member name="M:Org.BouncyCastle.Asn1.X9.ECNamedCurveTable.GetByOid(Org.BouncyCastle.Asn1.DerObjectIdentifier)">
+             return a X9ECParameters object representing the passed in named
+             curve.
+            
+             @param oid the object id of the curve requested
+             @return an X9ECParameters object or null if the curve is not available.
+        </member>
+        <member name="P:Org.BouncyCastle.Asn1.X9.ECNamedCurveTable.Names">
+             return an enumeration of the names of the available curves.
+            
+             @return an enumeration of the names of the available curves.
         </member>
         <member name="T:Org.BouncyCastle.Asn1.X9.KeySpecificInfo">
             ASN.1 def for Diffie-Hellman key exchange KeySpecificInfo structure. See
@@ -6987,6 +6996,15 @@
             Constructor for elliptic curves over prime fields
             <code>F<sub>2</sub></code>.
             @param primeP The prime <code>p</code> defining the prime field.
+        </member>
+        <member name="M:Org.BouncyCastle.Asn1.X9.X9FieldID.#ctor(System.Int32,System.Int32)">
+            Constructor for elliptic curves over binary fields
+            <code>F<sub>2<sup>m</sup></sub></code>.
+            @param m  The exponent <code>m</code> of
+            <code>F<sub>2<sup>m</sup></sub></code>.
+            @param k1 The integer <code>k1</code> where <code>x<sup>m</sup> +
+            x<sup>k1</sup> + 1</code>
+            represents the reduction polynomial <code>f(z)</code>.
         </member>
         <member name="M:Org.BouncyCastle.Asn1.X9.X9FieldID.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
             Constructor for elliptic curves over binary fields
@@ -9161,6 +9179,26 @@
             
              @return the algorithm name
         </member>
+        <member name="M:Org.BouncyCastle.Utilities.IMemoable.Copy">
+            <summary>
+            Produce a copy of this object with its configuration and in its current state.
+            </summary>
+            <remarks>
+            The returned object may be used simply to store the state, or may be used as a similar object
+            starting from the copied state.
+            </remarks>
+        </member>
+        <member name="M:Org.BouncyCastle.Utilities.IMemoable.Reset(Org.BouncyCastle.Utilities.IMemoable)">
+            <summary>
+            Restore a copied object state into this object.
+            </summary>
+            <remarks>
+            Implementations of this method <em>should</em> try to avoid or minimise memory allocation to perform the reset.
+            </remarks>
+            <param name="other">an object originally {@link #copy() copied} from an object of the same type as this instance.</param>
+            <exception cref="T:System.InvalidCastException">if the provided object is not of the correct type.</exception>
+            <exception cref="T:Org.BouncyCastle.Utilities.MemoableResetException">if the <b>other</b> parameter is in some other way invalid.</exception>
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Digests.Gost3411Digest">
             implementation of GOST R 34.11-94
         </member>
@@ -9440,6 +9478,235 @@
              @param length length in bytes of the output of doFinal.
              @exception ArgumentException if baseDigest is null, or length is greater than baseDigest.GetDigestSize().
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Digests.SkeinDigest">
+            <summary>
+            Implementation of the Skein parameterised hash function in 256, 512 and 1024 bit block sizes,
+            based on the <see cref="T:Org.BouncyCastle.Crypto.Engines.ThreefishEngine">Threefish</see> tweakable block cipher.
+            </summary>
+            <remarks>
+            This is the 1.3 version of Skein defined in the Skein hash function submission to the NIST SHA-3
+            competition in October 2010.
+            <p/>
+            Skein was designed by Niels Ferguson - Stefan Lucks - Bruce Schneier - Doug Whiting - Mihir
+            Bellare - Tadayoshi Kohno - Jon Callas - Jesse Walker.
+            </remarks>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Digests.SkeinEngine"/>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinDigest.SKEIN_256">
+            <summary>
+            256 bit block size - Skein-256
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinDigest.SKEIN_512">
+            <summary>
+            512 bit block size - Skein-512
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinDigest.SKEIN_1024">
+            <summary>
+            1024 bit block size - Skein-1024
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinDigest.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Constructs a Skein digest with an internal state size and output size.
+            </summary>
+            <param name="stateSizeBits">the internal state size in bits - one of <see cref="F:Org.BouncyCastle.Crypto.Digests.SkeinDigest.SKEIN_256"/> <see cref="F:Org.BouncyCastle.Crypto.Digests.SkeinDigest.SKEIN_512"/> or
+                                  <see cref="F:Org.BouncyCastle.Crypto.Digests.SkeinDigest.SKEIN_1024"/>.</param>
+            <param name="digestSizeBits">the output/digest size to produce in bits, which must be an integral number of
+                                 bytes.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinDigest.Init(Org.BouncyCastle.Crypto.Parameters.SkeinParameters)">
+            <summary>
+            Optionally initialises the Skein digest with the provided parameters.
+            </summary>
+            See <see cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"></see> for details on the parameterisation of the Skein hash function.
+            <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Digests.SkeinEngine">
+            <summary>
+            Implementation of the Skein family of parameterised hash functions in 256, 512 and 1024 bit block
+            sizes, based on the <see cref="T:Org.BouncyCastle.Crypto.Engines.ThreefishEngine">Threefish</see> tweakable block cipher.
+            </summary>
+            <remarks>
+            This is the 1.3 version of Skein defined in the Skein hash function submission to the NIST SHA-3
+            competition in October 2010.
+            <p/>
+            Skein was designed by Niels Ferguson - Stefan Lucks - Bruce Schneier - Doug Whiting - Mihir
+            Bellare - Tadayoshi Kohno - Jon Callas - Jesse Walker.
+            <p/>
+            This implementation is the basis for <see cref="T:Org.BouncyCastle.Crypto.Digests.SkeinDigest"/> and <see cref="T:Org.BouncyCastle.Crypto.Macs.SkeinMac"/>, implementing the
+            parameter based configuration system that allows Skein to be adapted to multiple applications. <br/>
+            Initialising the engine with <see cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/> allows standard and arbitrary parameters to
+            be applied during the Skein hash function.
+            <p/>
+            Implemented:
+            <ul>
+            <li>256, 512 and 1024 bit internal states.</li>
+            <li>Full 96 bit input length.</li>
+            <li>Parameters defined in the Skein specification, and arbitrary other pre and post message
+            parameters.</li>
+            <li>Arbitrary output size in 1 byte intervals.</li>
+            </ul>
+            <p/>
+            Not implemented:
+            <ul>
+            <li>Sub-byte length input (bit padding).</li>
+            <li>Tree hashing.</li>
+            </ul>
+            </remarks>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.SKEIN_256">
+            <summary>
+            256 bit block size - Skein-256
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.SKEIN_512">
+            <summary>
+            512 bit block size - Skein-512
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.SKEIN_1024">
+            <summary>
+            1024 bit block size - Skein-1024
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.PARAM_TYPE_KEY">
+            The parameter type for the Skein key.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.PARAM_TYPE_CONFIG">
+            The parameter type for the Skein configuration block.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.PARAM_TYPE_MESSAGE">
+            The parameter type for the message.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.PARAM_TYPE_OUTPUT">
+            The parameter type for the output transformation.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.INITIAL_STATES">
+            Precalculated UBI(CFG) states for common state/output combinations without key or other
+            pre-message params.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.threefish">
+            Underlying Threefish tweakable block cipher
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.outputSizeBytes">
+            Size of the digest output, in bytes
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.chain">
+            The current chaining/state value
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.initialState">
+            The initial state value
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.key">
+            The (optional) key parameter
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.preMessageParameters">
+            Parameters to apply prior to the message
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.postMessageParameters">
+            Parameters to apply after the message, but prior to output
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.ubi">
+            The current UBI operation
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.singleByte">
+            Buffer for single byte update method
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinEngine.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Constructs a Skein digest with an internal state size and output size.
+            </summary>
+            <param name="blockSizeBits">the internal state size in bits - one of <see cref="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.SKEIN_256"/> <see cref="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.SKEIN_512"/> or
+                                  <see cref="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.SKEIN_1024"/>.</param>
+            <param name="outputSizeBits">the output/digest size to produce in bits, which must be an integral number of
+                                 bytes.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinEngine.#ctor(Org.BouncyCastle.Crypto.Digests.SkeinEngine)">
+            <summary>
+            Creates a SkeinEngine as an exact copy of an existing instance.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinEngine.Init(Org.BouncyCastle.Crypto.Parameters.SkeinParameters)">
+            <summary>
+            Initialises the Skein engine with the provided parameters. See <see cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/> for
+            details on the parameterisation of the Skein hash function.
+            </summary>
+            <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinEngine.CreateInitialState">
+            Calculate the initial (pre message block) chaining state.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinEngine.Reset">
+            <summary>
+            Reset the engine to the initial state (with the key and any pre-message parameters , ready to
+            accept message input.
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UbiTweak.LOW_RANGE">
+            Point at which position might overflow long, so switch to add with carry logic
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UbiTweak.T1_FINAL">
+            Bit 127 = final
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UbiTweak.T1_FIRST">
+            Bit 126 = first
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UbiTweak.tweak">
+            UBI uses a 128 bit tweak
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UbiTweak.extendedPosition">
+            Whether 64 bit position exceeded
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UbiTweak.AdvancePosition(System.Int32)">
+            Advances the position in the tweak by the specified value.
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UBI">
+            The Unique Block Iteration chaining mode.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UBI.currentBlock">
+            Buffer for the current block of message data
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UBI.currentOffset">
+            Offset into the current message block
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Digests.SkeinEngine.UBI.message">
+            Buffer for message words for feedback into encrypted block
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Digests.SM3Digest">
+            <summary>
+            Implementation of Chinese SM3 digest as described at
+            http://tools.ietf.org/html/draft-shen-sm3-hash-00
+            and at .... ( Chinese PDF )
+            </summary>
+            <remarks>
+            The specification says "process a bit stream",
+            but this is written to process bytes in blocks of 4,
+            meaning this will process 32-bit word groups.
+            But so do also most other digest specifications,
+            including the SHA-256 which was a origin for
+            this specification.
+            </remarks>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SM3Digest.#ctor">
+            <summary>
+            Standard constructor
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SM3Digest.#ctor(Org.BouncyCastle.Crypto.Digests.SM3Digest)">
+            <summary>
+            Copy constructor.  This will copy the state of the provided
+            message digest.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Digests.SM3Digest.Reset">
+            <summary>
+            reset the chaining variables
+            </summary>
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Digests.TigerDigest">
             implementation of Tiger based on:
             <a href="http://www.cs.technion.ac.il/~biham/Reports/Tiger">
@@ -9466,6 +9733,25 @@
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Digests.WhirlpoolDigest.Reset">
             Reset the chaining variables
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.EC.CustomNamedCurves.GetByOid(Org.BouncyCastle.Asn1.DerObjectIdentifier)">
+             return the X9ECParameters object for the named curve represented by
+             the passed in object identifier. Null if the curve isn't present.
+            
+             @param oid an object identifier representing a named curve, if present.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.EC.CustomNamedCurves.GetOid(System.String)">
+             return the object identifier signified by the passed in name. Null
+             if there is no object identifier associated with name.
+            
+             @return the object identifier associated with name, if present.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.EC.CustomNamedCurves.GetName(Org.BouncyCastle.Asn1.DerObjectIdentifier)">
+            return the named curve name represented by the given object identifier.
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.EC.CustomNamedCurves.Names">
+            returns an enumeration containing the name strings for curves
+            contained in this structure.
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Encodings.ISO9796d1Encoding">
             ISO 9796-1 padding. Note in the light of recent results you should
@@ -10185,6 +10471,73 @@
              @throws ArgumentException if the params argument is
                                               inappropriate (ie. the key is not 256 bit long).
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Engines.IdeaEngine">
+            A class that provides a basic International Data Encryption Algorithm (IDEA) engine.
+            <p>
+            This implementation is based on the "HOWTO: INTERNATIONAL DATA ENCRYPTION ALGORITHM"
+            implementation summary by Fauzan Mirza (F.U.Mirza@sheffield.ac.uk). (baring 1 typo at the
+            end of the mulinv function!).
+            </p>
+            <p>
+            It can be found at ftp://ftp.funet.fi/pub/crypt/cryptography/symmetric/idea/
+            </p>
+            <p>
+            Note 1: This algorithm is patented in the USA, Japan, and Europe including
+            at least Austria, France, Germany, Italy, Netherlands, Spain, Sweden, Switzerland
+            and the United Kingdom. Non-commercial use is free, however any commercial
+            products are liable for royalties. Please see
+            <a href="http://www.mediacrypt.com">www.mediacrypt.com</a> for
+            further details. This announcement has been included at the request of
+            the patent holders.
+            </p>
+            <p>
+            Note 2: Due to the requests concerning the above, this algorithm is now only
+            included in the extended assembly. It is not included in the default distributions.
+            </p>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.#ctor">
+            standard constructor.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.Init(System.Boolean,Org.BouncyCastle.Crypto.ICipherParameters)">
+             initialise an IDEA cipher.
+            
+             @param forEncryption whether or not we are for encryption.
+             @param parameters the parameters required to set up the cipher.
+             @exception ArgumentException if the parameters argument is
+             inappropriate.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.Mul(System.Int32,System.Int32)">
+             return x = x * y where the multiplication is done modulo
+             65537 (0x10001) (as defined in the IDEA specification) and
+             a zero input is taken to be 65536 (0x10000).
+            
+             @param x the x value
+             @param y the y value
+             @return x = x * y
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.ExpandKey(System.Byte[])">
+            The following function is used to expand the user key to the encryption
+            subkey. The first 16 bytes are the user key, and the rest of the subkey
+            is calculated by rotating the previous 16 bytes by 25 bits to the left,
+            and so on until the subkey is completed.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.MulInv(System.Int32)">
+            This function computes multiplicative inverse using Euclid's Greatest
+            Common Divisor algorithm. Zero and one are self inverse.
+            <p>
+            i.e. x * MulInv(x) == 1 (modulo BASE)
+            </p>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.AddInv(System.Int32)">
+            Return the additive inverse of x.
+            <p>
+            i.e. x + AddInv(x) == 0
+            </p>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.IdeaEngine.InvertKey(System.Int32[])">
+            The function to invert the encryption subkey to the decryption subkey.
+            It also involves the multiplicative inverse and the additive inverse functions.
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Engines.IesEngine">
             support class for constructing intergrated encryption ciphers
             for doing basic message exchanges on top of key agreement ciphers
@@ -10881,6 +11234,159 @@
             
              @param  key  the key to be used
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Engines.ThreefishEngine">
+            <summary>
+            Implementation of the Threefish tweakable large block cipher in 256, 512 and 1024 bit block
+            sizes.
+            </summary>
+            <remarks>
+            This is the 1.3 version of Threefish defined in the Skein hash function submission to the NIST
+            SHA-3 competition in October 2010.
+            <p/>
+            Threefish was designed by Niels Ferguson - Stefan Lucks - Bruce Schneier - Doug Whiting - Mihir
+            Bellare - Tadayoshi Kohno - Jon Callas - Jesse Walker.
+            <p/>
+            This implementation inlines all round functions, unrolls 8 rounds, and uses 1.2k of static tables
+            to speed up key schedule injection. <br/>
+            2 x block size state is retained by each cipher instance.
+            </remarks>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BLOCKSIZE_256">
+            <summary>
+            256 bit block size - Threefish-256
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BLOCKSIZE_512">
+            <summary>
+            512 bit block size - Threefish-512
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BLOCKSIZE_1024">
+            <summary>
+            1024 bit block size - Threefish-1024
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.TWEAK_SIZE_BYTES">
+            Size of the tweak in bytes (always 128 bit/16 bytes)
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.ROUNDS_256">
+            Rounds in Threefish-256
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.ROUNDS_512">
+            Rounds in Threefish-512
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.ROUNDS_1024">
+            Rounds in Threefish-1024
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.MAX_ROUNDS">
+            Max rounds of any of the variants
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.C_240">
+            Key schedule parity constant
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.blocksizeBytes">
+            Block size in bytes
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.blocksizeWords">
+            Block size in 64 bit words
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.currentBlock">
+            Buffer for byte oriented processBytes to call internal word API
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.t">
+            Tweak bytes (2 byte t1,t2, calculated t3 and repeat of t1,t2 for modulo free lookup
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.kw">
+            Key schedule words
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.cipher">
+            The internal cipher implementation (varies by blocksize)
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.#ctor(System.Int32)">
+            <summary>
+            Constructs a new Threefish cipher, with a specified block size.
+            </summary>
+            <param name="blocksizeBits">the block size in bits, one of <see cref="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BLOCKSIZE_256"/>, <see cref="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BLOCKSIZE_512"/>,
+                                 <see cref="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BLOCKSIZE_1024"/> .</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Init(System.Boolean,Org.BouncyCastle.Crypto.ICipherParameters)">
+            <summary>
+            Initialise the engine.
+            </summary>
+            <param name="forEncryption">Initialise for encryption if true, for decryption if false.</param>
+            <param name="parameters">an instance of <see cref="T:Org.BouncyCastle.Crypto.Parameters.TweakableBlockCipherParameters"/> or <see cref="T:Org.BouncyCastle.Crypto.Parameters.KeyParameter"/> (to
+                          use a 0 tweak)</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Init(System.Boolean,System.UInt64[],System.UInt64[])">
+            <summary>
+            Initialise the engine, specifying the key and tweak directly.
+            </summary>
+            <param name="forEncryption">the cipher mode.</param>
+            <param name="key">the words of the key, or <code>null</code> to use the current key.</param>
+            <param name="tweak">the 2 word (128 bit) tweak, or <code>null</code> to use the current tweak.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.ProcessBlock(System.UInt64[],System.UInt64[])">
+            <summary>
+            Process a block of data represented as 64 bit words.
+            </summary>
+            <returns>the number of 8 byte words processed (which will be the same as the block size).</returns>
+            <param name="inWords">a block sized buffer of words to process.</param>
+            <param name="outWords">a block sized buffer of words to receive the output of the operation.</param>
+            <exception cref="T:Org.BouncyCastle.Crypto.DataLengthException">if either the input or output is not block sized</exception>
+            <exception cref="T:System.InvalidOperationException">if this engine is not initialised</exception>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.BytesToWord(System.Byte[],System.Int32)">
+            <summary>
+            Read a single 64 bit word from input in LSB first order.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.WordToBytes(System.UInt64,System.Byte[],System.Int32)">
+            <summary>
+            Write a 64 bit word to output in LSB first order.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.RotlXor(System.UInt64,System.Int32,System.UInt64)">
+            Rotate left + xor part of the mix operation.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.XorRotr(System.UInt64,System.Int32,System.UInt64)">
+            Rotate xor + rotate right part of the unmix operation.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.ThreefishCipher.t">
+            The extended + repeated tweak words
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.ThreefishCipher.kw">
+            The extended + repeated key words
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish256Cipher.ROTATION_0_0">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish256Cipher.ROTATION_0_1">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish512Cipher.ROTATION_0_0">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish512Cipher.ROTATION_0_1">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish512Cipher.ROTATION_0_2">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish512Cipher.ROTATION_0_3">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish1024Cipher.ROTATION_0_0">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish1024Cipher.ROTATION_0_1">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish1024Cipher.ROTATION_0_2">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Engines.ThreefishEngine.Threefish1024Cipher.ROTATION_0_3">
+            Mix rotation constants defined in Skein 1.3 specification
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Engines.TwofishEngine">
              A class that provides Twofish encryption operations.
             
@@ -11084,7 +11590,7 @@
             <i>FIPS 186-3 A.1 Generation of the FFC Primes p and q</i>.
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Generators.ECKeyPairGenerator.GenerateKeyPair">
-            Given the domain parameters this routine Generates an EC key
+            Given the domain parameters this routine generates an EC key
             pair in accordance with X9.62 section 5.2.1 pages 26, 27.
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Generators.ElGamalKeyPairGenerator">
@@ -12031,6 +12537,52 @@
             <param name="c">the number of compression rounds</param>
             <param name="d">the number of finalization rounds</param>
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Macs.SkeinMac">
+            <summary>
+            Implementation of the Skein parameterised MAC function in 256, 512 and 1024 bit block sizes,
+            based on the <see cref="T:Org.BouncyCastle.Crypto.Engines.ThreefishEngine">Threefish</see> tweakable block cipher.
+            </summary>
+            <remarks>
+            This is the 1.3 version of Skein defined in the Skein hash function submission to the NIST SHA-3
+            competition in October 2010.
+            <p/>
+            Skein was designed by Niels Ferguson - Stefan Lucks - Bruce Schneier - Doug Whiting - Mihir
+            Bellare - Tadayoshi Kohno - Jon Callas - Jesse Walker.
+            </remarks>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Digests.SkeinEngine"/>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Macs.SkeinMac.SKEIN_256">
+            <summary>
+            256 bit block size - Skein-256
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Macs.SkeinMac.SKEIN_512">
+            <summary>
+            512 bit block size - Skein-512
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Macs.SkeinMac.SKEIN_1024">
+            <summary>
+            1024 bit block size - Skein-1024
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Macs.SkeinMac.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Constructs a Skein MAC with an internal state size and output size.
+            </summary>
+            <param name="stateSizeBits">the internal state size in bits - one of <see cref="F:Org.BouncyCastle.Crypto.Macs.SkeinMac.SKEIN_256"/> <see cref="F:Org.BouncyCastle.Crypto.Macs.SkeinMac.SKEIN_512"/> or
+                                  <see cref="F:Org.BouncyCastle.Crypto.Macs.SkeinMac.SKEIN_1024"/>.</param>
+            <param name="digestSizeBits">the output/MAC size to produce in bits, which must be an integral number of
+                                 bytes.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Macs.SkeinMac.Init(Org.BouncyCastle.Crypto.ICipherParameters)">
+            <summary>
+            Optionally initialises the Skein digest with the provided parameters.
+            </summary>
+            See <see cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"></see> for details on the parameterisation of the Skein hash function.
+            <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.MaxBytesExceededException">
             <summary>
             This exception is thrown whenever a cipher requires a change of key, iv
@@ -12437,7 +12989,7 @@
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Modes.OcbBlockCipher">
             An implementation of the "work in progress" Internet-Draft <a
-            href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-03">The OCB Authenticated-Encryption
+            href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-07">The OCB Authenticated-Encryption
             Algorithm</a>, licensed per:
             
             <blockquote><p><a href="http://www.cs.ucdavis.edu/~rogaway/ocb/license1.pdf">License for
@@ -13034,6 +13586,185 @@
         <member name="T:Org.BouncyCastle.Crypto.Parameters.ParametersWithSalt">
             <summary> Cipher parameters with a fixed salt value associated with them.</summary>
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters">
+            <summary>
+            Parameters for the Skein hash function - a series of byte[] strings identified by integer tags.
+            </summary>
+            <remarks>
+            Parameterised Skein can be used for:
+            <ul> 
+            <li>MAC generation, by providing a <see cref="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetKey(System.Byte[])">key</see>.</li>
+            <li>Randomised hashing, by providing a <see cref="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetNonce(System.Byte[])">nonce</see>.</li>
+            <li>A hash function for digital signatures, associating a
+            <see cref="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetPublicKey(System.Byte[])">public key</see> with the message digest.</li>
+            <li>A key derivation function, by providing a
+            <see cref="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetKeyIdentifier(System.Byte[])">key identifier</see>.</li>
+            <li>Personalised hashing, by providing a
+            <see cref="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetPersonalisation(System.DateTime,System.String,System.String)">recommended format</see> or
+            <see cref="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetPersonalisation(System.Byte[])">arbitrary</see> personalisation string.</li>
+            </ul>
+            </remarks>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Digests.SkeinEngine"/>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Digests.SkeinDigest"/>
+            <seealso cref="T:Org.BouncyCastle.Crypto.Macs.SkeinMac"/>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY">
+            <summary>
+            The parameter type for a secret key, supporting MAC or KDF functions: 0
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_CONFIG">
+            <summary>
+            The parameter type for the Skein configuration block: 4
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_PERSONALISATION">
+            <summary>
+            The parameter type for a personalisation string: 8
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_PUBLIC_KEY">
+            <summary>
+            The parameter type for a public key: 12
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY_IDENTIFIER">
+            <summary>
+            The parameter type for a key identifier string: 16
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_NONCE">
+            <summary>
+            The parameter type for a nonce: 20
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_MESSAGE">
+            <summary>
+            The parameter type for the message: 48
+            </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_OUTPUT">
+            <summary>
+            The parameter type for the output transformation: 63
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetParameters">
+            <summary>
+            Obtains a map of type (int) to value (byte[]) for the parameters tracked in this object.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetKey">
+            <summary>
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY">key parameter</see>, or <code>null</code> if not
+            set.
+            </summary>
+            <returns>The key.</returns>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetPersonalisation">
+            <summary>
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_PERSONALISATION">personalisation parameter</see>, or
+            <code>null</code> if not set.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetPublicKey">
+            <summary>
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_PUBLIC_KEY">public key parameter</see>, or
+            <code>null</code> if not set.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetKeyIdentifier">
+            <summary>
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY_IDENTIFIER">key identifier parameter</see>, or
+            <code>null</code> if not set.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.GetNonce">
+            <summary>
+            Obtains the value of the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_NONCE">nonce parameter</see>, or <code>null</code> if
+            not set.
+            </summary>
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder">
+            <summary>
+            A builder for <see cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/>.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.Set(System.Int32,System.Byte[])">
+            <summary>
+            Sets a parameters to apply to the Skein hash function.
+            </summary>
+            <remarks>
+            Parameter types must be in the range 0,5..62, and cannot use the value 48
+            (reserved for message body).
+            <p/>
+            Parameters with type &lt; 48 are processed before
+            the message content, parameters with type &gt; 48
+            are processed after the message and prior to output.
+            </remarks>
+            <param name="type">the type of the parameter, in the range 5..62.</param>
+            <param name="value">the byte sequence of the parameter.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetKey(System.Byte[])">
+            <summary>
+            Sets the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY"/> parameter.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetPersonalisation(System.Byte[])">
+            <summary>
+            Sets the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_PERSONALISATION"/> parameter.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetPersonalisation(System.DateTime,System.String,System.String)">
+            <summary>
+            Implements the recommended personalisation format for Skein defined in Section 4.11 of
+            the Skein 1.3 specification.
+            </summary>
+            <remarks>
+            The format is <code>YYYYMMDD email@address distinguisher</code>, encoded to a byte
+            sequence using UTF-8 encoding.
+            </remarks>
+            <param name="date">the date the personalised application of the Skein was defined.</param>
+            <param name="emailAddress">the email address of the creation of the personalised application.</param>
+            <param name="distinguisher">an arbitrary personalisation string distinguishing the application.</param>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetPublicKey(System.Byte[])">
+            <summary>
+            Sets the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY_IDENTIFIER"/> parameter.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetKeyIdentifier(System.Byte[])">
+            <summary>
+            Sets the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_KEY_IDENTIFIER"/> parameter.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.SetNonce(System.Byte[])">
+            <summary>
+            Sets the <see cref="F:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.PARAM_TYPE_NONCE"/> parameter.
+            </summary>
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Parameters.SkeinParameters.Builder.Build">
+            <summary>
+            Constructs a new <see cref="T:Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/> instance with the parameters provided to this
+            builder.
+            </summary>
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Parameters.TweakableBlockCipherParameters">
+            <summary>
+            Parameters for tweakable block ciphers.
+            </summary>
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Parameters.TweakableBlockCipherParameters.Key">
+            <summary>
+            Gets the key.
+            </summary>
+            <value>the key to use, or <code>null</code> to use the current key.</value>
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Parameters.TweakableBlockCipherParameters.Tweak">
+            <summary>
+            Gets the tweak value.
+            </summary>
+            <value>The tweak to use, or <code>null</code> to use the current tweak.</value>
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Prng.CryptoApiRandomGenerator">
             <summary>
             Uses Microsoft's RNGCryptoServiceProvider
@@ -13534,12 +14265,153 @@
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.AlertDescription">
             <summary>
-            RFC 2246 7.2
+            RFC 5246 7.2
             </summary>
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.close_notify">
+            This message notifies the recipient that the sender will not send any more messages on this
+            connection. Note that as of TLS 1.1, failure to properly close a connection no longer
+            requires that a session not be resumed. This is a change from TLS 1.0 ("The session becomes
+            unresumable if any connection is terminated without proper close_notify messages with level
+            equal to warning.") to conform with widespread implementation practice.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.unexpected_message">
+            An inappropriate message was received. This alert is always fatal and should never be
+            observed in communication between proper implementations.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.bad_record_mac">
+            This alert is returned if a record is received with an incorrect MAC. This alert also MUST be
+            returned if an alert is sent because a TLSCiphertext decrypted in an invalid way: either it
+            wasn't an even multiple of the block length, or its padding values, when checked, weren't
+            correct. This message is always fatal and should never be observed in communication between
+            proper implementations (except when messages were corrupted in the network).
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.decryption_failed">
+            This alert was used in some earlier versions of TLS, and may have permitted certain attacks
+            against the CBC mode [CBCATT]. It MUST NOT be sent by compliant implementations.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.record_overflow">
+            A TLSCiphertext record was received that had a length more than 2^14+2048 bytes, or a record
+            decrypted to a TLSCompressed record with more than 2^14+1024 bytes. This message is always
+            fatal and should never be observed in communication between proper implementations (except
+            when messages were corrupted in the network).
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.decompression_failure">
+            The decompression function received improper input (e.g., data that would expand to excessive
+            length). This message is always fatal and should never be observed in communication between
+            proper implementations.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.handshake_failure">
+            Reception of a handshake_failure alert message indicates that the sender was unable to
+            negotiate an acceptable set of security parameters given the options available. This is a
+            fatal error.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.no_certificate">
+            This alert was used in SSLv3 but not any version of TLS. It MUST NOT be sent by compliant
+            implementations.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.bad_certificate">
+            A certificate was corrupt, contained signatures that did not verify correctly, etc.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.unsupported_certificate">
+            A certificate was of an unsupported type.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.certificate_revoked">
+            A certificate was revoked by its signer.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.certificate_expired">
+            A certificate has expired or is not currently valid.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.certificate_unknown">
+            Some other (unspecified) issue arose in processing the certificate, rendering it
+            unacceptable.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.illegal_parameter">
+            A field in the handshake was out of range or inconsistent with other fields. This message is
+            always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.unknown_ca">
+            A valid certificate chain or partial chain was received, but the certificate was not accepted
+            because the CA certificate could not be located or couldn't be matched with a known, trusted
+            CA. This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.access_denied">
+            A valid certificate was received, but when access control was applied, the sender decided not
+            to proceed with negotiation. This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.decode_error">
+            A message could not be decoded because some field was out of the specified range or the
+            length of the message was incorrect. This message is always fatal and should never be
+            observed in communication between proper implementations (except when messages were corrupted
+            in the network).
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.decrypt_error">
+            A handshake cryptographic operation failed, including being unable to correctly verify a
+            signature or validate a Finished message. This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.export_restriction">
+            This alert was used in some earlier versions of TLS. It MUST NOT be sent by compliant
+            implementations.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.protocol_version">
+            The protocol version the client has attempted to negotiate is recognized but not supported.
+            (For example, old protocol versions might be avoided for security reasons.) This message is
+            always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.insufficient_security">
+            Returned instead of handshake_failure when a negotiation has failed specifically because the
+            server requires ciphers more secure than those supported by the client. This message is
+            always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.internal_error">
+            An internal error unrelated to the peer or the correctness of the protocol (such as a memory
+            allocation failure) makes it impossible to continue. This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.user_canceled">
+            This handshake is being canceled for some reason unrelated to a protocol failure. If the user
+            cancels an operation after the handshake is complete, just closing the connection by sending
+            a close_notify is more appropriate. This alert should be followed by a close_notify. This
+            message is generally a warning.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.no_renegotiation">
+            Sent by the client in response to a hello request or by the server in response to a client
+            hello after initial handshaking. Either of these would normally lead to renegotiation; when
+            that is not appropriate, the recipient should respond with this alert. At that point, the
+            original requester can decide whether to proceed with the connection. One case where this
+            would be appropriate is where a server has spawned a process to satisfy a request; the
+            process might receive security parameters (key length, authentication, etc.) at startup, and
+            it might be difficult to communicate changes to these parameters after that point. This
+            message is always a warning.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.unsupported_extension">
+            Sent by clients that receive an extended server hello containing an extension that they did
+            not put in the corresponding client hello. This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.certificate_unobtainable">
+            This alert is sent by servers who are unable to retrieve a certificate chain from the URL
+            supplied by the client (see Section 3.3). This message MAY be fatal - for example if client
+            authentication is required by the server for the handshake to continue and the server is
+            unable to retrieve the certificate chain, it may send a fatal alert.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.unrecognized_name">
+            This alert is sent by servers that receive a server_name extension request, but do not
+            recognize the server name. This message MAY be fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.bad_certificate_status_response">
+            This alert is sent by clients that receive an invalid certificate status response (see
+            Section 3.6). This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.bad_certificate_hash_value">
+            This alert is sent by servers when a certificate hash does not match a client provided
+            certificate_hash. This message is always fatal.
+        </member>
+        <member name="F:Org.BouncyCastle.Crypto.Tls.AlertDescription.unknown_psk_identity">
+            If the server does not recognize the PSK identity, it MAY respond with an
+            "unknown_psk_identity" alert message.
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.AlertLevel">
             <summary>
-            RFC 2246 7.2
+            RFC 5246 7.2
             </summary>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.AlwaysValidVerifyer">
@@ -13607,43 +14479,91 @@
             <summary>The number of bytes which are available in this buffer.</summary>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.Certificate">
-            A representation for a certificate chain.
+             Parsing and encoding of a <i>Certificate</i> struct from RFC 4346.
+             <p/>
+             <pre>
+             opaque ASN.1Cert&lt;2^24-1&gt;;
+            
+             struct {
+                 ASN.1Cert certificate_list&lt;0..2^24-1&gt;;
+             } Certificate;
+             </pre>
+            
+             @see Org.BouncyCastle.Asn1.X509.X509CertificateStructure
         </member>
-        <member name="F:Org.BouncyCastle.Crypto.Tls.Certificate.certs">
+        <member name="F:Org.BouncyCastle.Crypto.Tls.Certificate.mCertificateList">
             The certificates.
-        </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.Parse(System.IO.Stream)">
-             Parse the ServerCertificate message.
-            
-             @param inStr The stream where to parse from.
-             @return A Certificate object with the certs, the server has sended.
-             @throws IOException If something goes wrong during parsing.
-        </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.Encode(System.IO.Stream)">
-             Encodes version of the ClientCertificate message
-            
-             @param outStr stream to write the message to
-             @throws IOException If something goes wrong
-        </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.#ctor(Org.BouncyCastle.Asn1.X509.X509CertificateStructure[])">
-             Private constructor from a cert array.
-            
-             @param certs The certs the chain should contain.
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.GetCerts">
             <returns>An array which contains the certs, this chain contains.</returns>
         </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.GetCertificateList">
+            @return an array of {@link org.bouncycastle.asn1.x509.Certificate} representing a certificate
+                    chain.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.Encode(System.IO.Stream)">
+             Encode this {@link Certificate} to a {@link Stream}.
+            
+             @param output the {@link Stream} to encode to.
+             @throws IOException
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.Certificate.Parse(System.IO.Stream)">
+             Parse a {@link Certificate} from a {@link Stream}.
+            
+             @param input the {@link Stream} to parse from.
+             @return a {@link Certificate} object.
+             @throws IOException
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Tls.Certificate.IsEmpty">
+            @return <code>true</code> if this certificate chain contains no certificates, or
+                    <code>false</code> otherwise.
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.CertificateRequest">
+             Parsing and encoding of a <i>CertificateRequest</i> struct from RFC 4346.
+             <p/>
+             <pre>
+             struct {
+                 ClientCertificateType certificate_types&lt;1..2^8-1&gt;;
+                 DistinguishedName certificate_authorities&lt;3..2^16-1&gt;
+             } CertificateRequest;
+             </pre>
+            
+             @see ClientCertificateType
+             @see X509Name
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.CertificateRequest.#ctor(System.Byte[],System.Collections.IList,System.Collections.IList)">
+            @param certificateTypes       see {@link ClientCertificateType} for valid constants.
+            @param certificateAuthorities an {@link IList} of {@link X509Name}.
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.CertificateRequest.Encode(System.IO.Stream)">
+             Encode this {@link CertificateRequest} to a {@link Stream}.
+            
+             @param output the {@link Stream} to encode to.
+             @throws IOException
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.CertificateRequest.Parse(System.IO.Stream)">
+            Parse a {@link CertificateRequest} from a {@link Stream}.
+            
+            @param context
+                       the {@link TlsContext} of the current connection.
+            @param input
+                       the {@link Stream} to parse from.
+            @return a {@link CertificateRequest} object.
+            @throws IOException
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Tls.CertificateRequest.CertificateTypes">
+            @return an array of certificate types
+            @see {@link ClientCertificateType}
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Tls.CertificateRequest.SupportedSignatureAlgorithms">
+            @return an {@link IList} of {@link SignatureAndHashAlgorithm} (or null before TLS 1.2).
+        </member>
         <member name="P:Org.BouncyCastle.Crypto.Tls.CertificateRequest.CertificateAuthorities">
-            <returns>A <see cref="T:System.Collections.IList"/> of X509Name</returns>
+            @return an {@link IList} of {@link X509Name}
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.CipherSuite">
             <summary>
             RFC 2246 A.5
-            </summary>
-        </member>
-        <member name="T:Org.BouncyCastle.Crypto.Tls.ClientCertificateType">
-            <summary>
-            RFC 2246 7.4.4
             </summary>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.CombinedHash">
@@ -13676,14 +14596,12 @@
             </summary>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.ContentType">
-            <summary>
             RFC 2246 6.2.1
-            </summary>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsAgreementCredentials.GenerateAgreement(Org.BouncyCastle.Crypto.AsymmetricKeyParameter)">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsCipherFactory.CreateCipher(Org.BouncyCastle.Crypto.Tls.TlsClientContext,Org.BouncyCastle.Crypto.Tls.EncryptionAlgorithm,Org.BouncyCastle.Crypto.Tls.DigestAlgorithm)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsCipherFactory.CreateCipher(Org.BouncyCastle.Crypto.Tls.TlsClientContext,System.Int32,Org.BouncyCastle.Crypto.Tls.DigestAlgorithm)">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.DefaultTlsCipherFactory.CreateRC4Cipher(Org.BouncyCastle.Crypto.Tls.TlsClientContext,System.Int32,Org.BouncyCastle.Crypto.Tls.DigestAlgorithm)">
@@ -13711,7 +14629,7 @@
             Get the list of cipher suites that this client supports.
             </summary>
             <returns>
-            An array of <see cref="T:Org.BouncyCastle.Crypto.Tls.CipherSuite"/>, each specifying a supported cipher suite.
+            An array of <see cref="T:Org.BouncyCastle.Crypto.Tls.CipherSuite"/> values, each specifying a supported cipher suite.
             </returns>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.GetCompressionMethods">
@@ -13719,7 +14637,7 @@
             Get the list of compression methods that this client supports.
             </summary>
             <returns>
-            An array of <see cref="T:Org.BouncyCastle.Crypto.Tls.CompressionMethod"/>, each specifying a supported compression method.
+            An array of <see cref="T:Org.BouncyCastle.Crypto.Tls.CompressionMethod"/> values, each specifying a supported compression method.
             </returns>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.GetClientExtensions">
@@ -13727,7 +14645,7 @@
             Get the (optional) table of client extensions to be included in (extended) client hello.
             </summary>
             <returns>
-            A <see cref="T:System.Collections.IDictionary"/> (<see cref="T:Org.BouncyCastle.Crypto.Tls.ExtensionType"/> -&gt; byte[]). May be null.
+            A <see cref="T:System.Collections.IDictionary"/> (Int32 -&gt; byte[]). May be null.
             </returns>
             <exception cref="T:System.IO.IOException"></exception>
         </member>
@@ -13739,7 +14657,7 @@
             A <see cref="T:System.Byte"/>
             </param>
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.NotifySelectedCipherSuite(Org.BouncyCastle.Crypto.Tls.CipherSuite)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.NotifySelectedCipherSuite(System.Int32)">
             <summary>
             Report the cipher suite that was selected by the server.
             </summary>
@@ -13751,7 +14669,7 @@
             A <see cref="T:Org.BouncyCastle.Crypto.Tls.CipherSuite"/>
             </param>
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.NotifySelectedCompressionMethod(Org.BouncyCastle.Crypto.Tls.CompressionMethod)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.NotifySelectedCompressionMethod(System.Byte)">
             <summary>
             Report the compression method that was selected by the server.
             </summary>
@@ -13783,7 +14701,7 @@
             Will only be called if we returned a non-null result from <see cref="M:Org.BouncyCastle.Crypto.Tls.TlsClient.GetClientExtensions"/>.
             </remarks>
             <param name="serverExtensions">
-            A <see cref="T:System.Collections.IDictionary"/>  (<see cref="T:Org.BouncyCastle.Crypto.Tls.ExtensionType"/> -&gt; byte[])
+            A <see cref="T:System.Collections.IDictionary"/>  (Int32 -&gt; byte[])
             </param>
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsClient.GetKeyExchange">
@@ -13842,15 +14760,20 @@
             RFC 4492 5.1.2
             </summary>
         </member>
-        <member name="T:Org.BouncyCastle.Crypto.Tls.ExtensionType">
-            <summary>
-            RFC 4366 2.3
-            </summary>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.EncryptionAlgorithm">
+            RFC 2246
+            <p/>
+            Note that the values here are implementation-specific and arbitrary. It is recommended not to
+            depend on the particular values (e.g. serialization).
         </member>
-        <member name="T:Org.BouncyCastle.Crypto.Tls.HandshakeType">
-            <summary>
-            RFC 2246 7.4
-            </summary>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.HashAlgorithm">
+            RFC 5246 7.4.1.4.1
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.KeyExchangeAlgorithm">
+            RFC 2246
+            <p/>
+            Note that the values here are implementation-specific and arbitrary. It is recommended not to
+            depend on the particular values (e.g. serialization).
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.LegacyTlsAuthentication">
             <summary>
@@ -13895,8 +14818,46 @@
             parameters must be encoded explicitly in ECParameters).
             </summary>
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.PrfAlgorithm">
+            RFC 5246
+            <p/>
+            Note that the values here are implementation-specific and arbitrary. It is recommended not to
+            depend on the particular values (e.g. serialization).
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.ProtocolVersion.Get(System.Int32,System.Int32)">
+            <exception cref="T:System.IO.IOException"/>
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.RecordStream">
             <remarks>An implementation of the TLS 1.0 record layer.</remarks>
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.SignatureAlgorithm">
+            RFC 5246 7.4.1.4.1 (in RFC 2246, there were no specific values assigned)
+        </member>
+        <member name="T:Org.BouncyCastle.Crypto.Tls.SignatureAndHashAlgorithm">
+            RFC 5246 7.4.1.4.1
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.SignatureAndHashAlgorithm.#ctor(System.Byte,System.Byte)">
+            @param hash      {@link HashAlgorithm}
+            @param signature {@link SignatureAlgorithm}
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.SignatureAndHashAlgorithm.Encode(System.IO.Stream)">
+             Encode this {@link SignatureAndHashAlgorithm} to a {@link Stream}.
+            
+             @param output the {@link Stream} to encode to.
+             @throws IOException
+        </member>
+        <member name="M:Org.BouncyCastle.Crypto.Tls.SignatureAndHashAlgorithm.Parse(System.IO.Stream)">
+             Parse a {@link SignatureAndHashAlgorithm} from a {@link Stream}.
+            
+             @param input the {@link Stream} to parse from.
+             @return a {@link SignatureAndHashAlgorithm} object.
+             @throws IOException
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Tls.SignatureAndHashAlgorithm.Hash">
+            @return {@link HashAlgorithm}
+        </member>
+        <member name="P:Org.BouncyCastle.Crypto.Tls.SignatureAndHashAlgorithm.Signature">
+            @return {@link SignatureAlgorithm}
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.Ssl3Mac">
             HMAC implementation based on original internet draft for HMAC (RFC 2104)
@@ -13919,10 +14880,10 @@
             A generic TLS 1.0 block cipher. This can be used for AES or 3DES for example.
             </summary>
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsCipher.EncodePlaintext(Org.BouncyCastle.Crypto.Tls.ContentType,System.Byte[],System.Int32,System.Int32)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsCipher.EncodePlaintext(System.Byte,System.Byte[],System.Int32,System.Int32)">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsCipher.DecodeCiphertext(Org.BouncyCastle.Crypto.Tls.ContentType,System.Byte[],System.Int32,System.Int32)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsCipher.DecodeCiphertext(System.Byte,System.Byte[],System.Int32,System.Int32)">
             <exception cref="T:System.IO.IOException"></exception>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tls.TlsDHKeyExchange">
@@ -13988,7 +14949,7 @@
         <member name="M:Org.BouncyCastle.Crypto.Tls.TlsMac.IncSequenceNumber">
             Increment the current write sequence number
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsMac.CalculateMac(Org.BouncyCastle.Crypto.Tls.ContentType,System.Byte[],System.Int32,System.Int32)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsMac.CalculateMac(System.Byte,System.Byte[],System.Int32,System.Int32)">
              Calculate the mac for some given data.
              <p/>
              TlsMac will keep track of the sequence number internally.
@@ -14052,7 +15013,7 @@
              @param len    The length of the data.
              @throws IOException If something goes wrong during sending.
         </member>
-        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsProtocolHandler.FailWithError(Org.BouncyCastle.Crypto.Tls.AlertLevel,Org.BouncyCastle.Crypto.Tls.AlertDescription)">
+        <member name="M:Org.BouncyCastle.Crypto.Tls.TlsProtocolHandler.FailWithError(System.Byte,System.Byte)">
              Terminate this connection with an alert.
              <p/>
              Can be used for normal closure too.
@@ -14123,7 +15084,6 @@
              @param a    First number to calculate gcd for
              @param b    Second number to calculate gcd for
              @param u1Out      the return object for the u1 value
-             @param u2Out      the return object for the u2 value
              @return     The greatest common divisor of a and b
         </member>
         <member name="M:Org.BouncyCastle.Math.BigInteger.Square(System.Int32[],System.Int32[])">
@@ -14413,11 +15373,250 @@
         <member name="T:Org.BouncyCastle.Math.EC.ECCurve">
             <remarks>Base class for an elliptic curve.</remarks>
         </member>
+        <member name="M:Org.BouncyCastle.Math.EC.ECCurve.SetPreCompInfo(Org.BouncyCastle.Math.EC.ECPoint,System.String,Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
+            Adds <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
+            <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
+            by subsequent multiplication.
+            
+            @param point
+                       The <code>ECPoint</code> to store precomputations for.
+            @param name
+                       A <code>String</code> used to index precomputations of different types.
+            @param preCompInfo
+                       The values precomputed by the <code>ECMultiplier</code>.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.ECCurve.NormalizeAll(Org.BouncyCastle.Math.EC.ECPoint[])">
+            Normalization ensures that any projective coordinate is 1, and therefore that the x, y
+            coordinates reflect those of the equivalent point in an affine coordinate system. Where more
+            than one point is to be normalized, this method will generally be more efficient than
+            normalizing each point separately.
+            
+            @param points
+                       An array of points that will be updated in place with their normalized versions,
+                       where necessary
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.ECCurve.GetMultiplier">
+            Sets the default <code>ECMultiplier</code>, unless already set. 
+        </member>
         <member name="M:Org.BouncyCastle.Math.EC.ECCurve.DecodePoint(System.Byte[])">
             Decode a point on this curve from its ASN.1 encoding. The different
             encodings are taken account of, including point compression for
             <code>F<sub>p</sub></code> (X9.62 s 4.2.1 pg 17).
             @return The decoded point.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP192K1FieldElement.Sqrt">
+            return a sqrt root - the routine verifies that the calculation returns the right value - if
+            none exists it returns null.
+        </member>
+        <member name="T:Org.BouncyCastle.Math.EC.ECPoint">
+            base class for points on elliptic curves.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.ECPoint.Normalize">
+            Normalization ensures that any projective coordinate is 1, and therefore that the x, y
+            coordinates reflect those of the equivalent point in an affine coordinate system.
+            
+            @return a new ECPoint instance representing the same point, but with normalized coordinates
+        </member>
+        <member name="P:Org.BouncyCastle.Math.EC.ECPoint.X">
+            Normalizes this point, and then returns the affine x-coordinate.
+            
+            Note: normalization can be expensive, this method is deprecated in favour
+            of caller-controlled normalization.
+        </member>
+        <member name="P:Org.BouncyCastle.Math.EC.ECPoint.Y">
+            Normalizes this point, and then returns the affine y-coordinate.
+            
+            Note: normalization can be expensive, this method is deprecated in favour
+            of caller-controlled normalization.
+        </member>
+        <member name="P:Org.BouncyCastle.Math.EC.ECPoint.AffineXCoord">
+            Returns the affine x-coordinate after checking that this point is normalized.
+            
+            @return The affine x-coordinate of this point
+            @throws IllegalStateException if the point is not normalized
+        </member>
+        <member name="P:Org.BouncyCastle.Math.EC.ECPoint.AffineYCoord">
+            Returns the affine y-coordinate after checking that this point is normalized
+            
+            @return The affine y-coordinate of this point
+            @throws IllegalStateException if the point is not normalized
+        </member>
+        <member name="P:Org.BouncyCastle.Math.EC.ECPoint.XCoord">
+            Returns the x-coordinate.
+            
+            Caution: depending on the curve's coordinate system, this may not be the same value as in an
+            affine coordinate system; use Normalize() to get a point where the coordinates have their
+            affine values, or use AffineXCoord if you expect the point to already have been normalized.
+            
+            @return the x-coordinate of this point
+        </member>
+        <member name="P:Org.BouncyCastle.Math.EC.ECPoint.YCoord">
+            Returns the y-coordinate.
+            
+            Caution: depending on the curve's coordinate system, this may not be the same value as in an
+            affine coordinate system; use Normalize() to get a point where the coordinates have their
+            affine values, or use AffineYCoord if you expect the point to already have been normalized.
+            
+            @return the y-coordinate of this point
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.ECPointBase.GetEncoded(System.Boolean)">
+            return the field element encoded with point compression. (S 4.3.6)
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.ECPointBase.Multiply(Org.BouncyCastle.Math.BigInteger)">
+            Multiplies this <code>ECPoint</code> by the given number.
+            @param k The multiplicator.
+            @return <code>k * this</code>.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP192K1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement)">
+            Create a point which encodes with point compression.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            
+            @deprecated Use ECCurve.createPoint to construct points
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP192K1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement,System.Boolean)">
+            Create a point that encodes with or without point compresion.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            @param withCompression
+                       if true encode with point compression
+            
+            @deprecated per-point compression property will be removed, refer
+                        {@link #getEncoded(bool)}
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP192R1FieldElement.Sqrt">
+            return a sqrt root - the routine verifies that the calculation returns the right value - if
+            none exists it returns null.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP192R1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement)">
+            Create a point which encodes with point compression.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            
+            @deprecated Use ECCurve.createPoint to construct points
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP192R1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement,System.Boolean)">
+            Create a point that encodes with or without point compresion.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            @param withCompression
+                       if true encode with point compression
+            
+            @deprecated per-point compression property will be removed, refer
+                        {@link #getEncoded(bool)}
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP256K1FieldElement.Sqrt">
+            return a sqrt root - the routine verifies that the calculation returns the right value - if
+            none exists it returns null.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP256K1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement)">
+            Create a point which encodes with point compression.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            
+            @deprecated Use ECCurve.createPoint to construct points
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP256K1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement,System.Boolean)">
+            Create a point that encodes with or without point compresion.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            @param withCompression
+                       if true encode with point compression
+            
+            @deprecated per-point compression property will be removed, refer
+                        {@link #getEncoded(bool)}
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP256R1FieldElement.Sqrt">
+            return a sqrt root - the routine verifies that the calculation returns the right value - if
+            none exists it returns null.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP256R1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement)">
+            Create a point which encodes with point compression.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            
+            @deprecated Use ECCurve.createPoint to construct points
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP256R1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement,System.Boolean)">
+            Create a point that encodes with or without point compresion.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            @param withCompression
+                       if true encode with point compression
+            
+            @deprecated per-point compression property will be removed, refer
+                        {@link #getEncoded(bool)}
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP521R1FieldElement.Sqrt">
+            return a sqrt root - the routine verifies that the calculation returns the right value - if
+            none exists it returns null.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP521R1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement)">
+            Create a point which encodes with point compression.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            
+            @deprecated Use ECCurve.createPoint to construct points
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Custom.Sec.SecP521R1Point.#ctor(Org.BouncyCastle.Math.EC.ECCurve,Org.BouncyCastle.Math.EC.ECFieldElement,Org.BouncyCastle.Math.EC.ECFieldElement,System.Boolean)">
+            Create a point that encodes with or without point compresion.
+            
+            @param curve
+                       the curve to use
+            @param x
+                       affine x co-ordinate
+            @param y
+                       affine y co-ordinate
+            @param withCompression
+                       if true encode with point compression
+            
+            @deprecated per-point compression property will be removed, refer
+                        {@link #getEncoded(bool)}
         </member>
         <member name="T:Org.BouncyCastle.Math.EC.FpCurve">
             Elliptic curve over Fp
@@ -14449,13 +15648,7 @@
             x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
             represents the reduction polynomial <code>f(z)</code>.<br/>
         </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mCurve.n">
-            The order of the base point of the curve.
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mCurve.h">
-            The cofactor of the curve.
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mCurve.infinity">
+        <member name="F:Org.BouncyCastle.Math.EC.F2mCurve.m_infinity">
             The point at infinity on this curve.
         </member>
         <member name="F:Org.BouncyCastle.Math.EC.F2mCurve.mu">
@@ -14494,8 +15687,8 @@
             @param b The coefficient <code>b</code> in the Weierstrass equation
             for non-supersingular elliptic curves over
             <code>F<sub>2<sup>m</sup></sub></code>.
-            @param n The order of the main subgroup of the elliptic curve.
-            @param h The cofactor of the elliptic curve, i.e.
+            @param order The order of the main subgroup of the elliptic curve.
+            @param cofactor The cofactor of the elliptic curve, i.e.
             <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
         </member>
         <member name="M:Org.BouncyCastle.Math.EC.F2mCurve.#ctor(System.Int32,System.Int32,System.Int32,System.Int32,Org.BouncyCastle.Math.BigInteger,Org.BouncyCastle.Math.BigInteger)">
@@ -14537,8 +15730,8 @@
             @param b The coefficient <code>b</code> in the Weierstrass equation
             for non-supersingular elliptic curves over
             <code>F<sub>2<sup>m</sup></sub></code>.
-            @param n The order of the main subgroup of the elliptic curve.
-            @param h The cofactor of the elliptic curve, i.e.
+            @param order The order of the main subgroup of the elliptic curve.
+            @param cofactor The cofactor of the elliptic curve, i.e.
             <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
         </member>
         <member name="M:Org.BouncyCastle.Math.EC.F2mCurve.GetMu">
@@ -14552,7 +15745,7 @@
             <code>s<sub>1</sub></code> used for partial modular reduction for
             Koblitz curves.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.F2mCurve.solveQuadradicEquation(Org.BouncyCastle.Math.EC.ECFieldElement)">
+        <member name="M:Org.BouncyCastle.Math.EC.F2mCurve.SolveQuadradicEquation(Org.BouncyCastle.Math.EC.ECFieldElement)">
              Solves a quadratic equation <code>z<sup>2</sup> + z = beta</code>(X9.62
              D.1.6) The other solution is <code>z + 1</code>.
             
@@ -14604,31 +15797,8 @@
         <member name="F:Org.BouncyCastle.Math.EC.F2mFieldElement.m">
             The exponent <code>m</code> of <code>F<sub>2<sup>m</sup></sub></code>.
         </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mFieldElement.k1">
-            Tpb: The integer <code>k</code> where <code>x<sup>m</sup> +
-            x<sup>k</sup> + 1</code> represents the reduction polynomial
-            <code>f(z)</code>.<br/>
-            Ppb: The integer <code>k1</code> where <code>x<sup>m</sup> +
-            x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            represents the reduction polynomial <code>f(z)</code>.<br/>
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mFieldElement.k2">
-            Tpb: Always set to <code>0</code><br/>
-            Ppb: The integer <code>k2</code> where <code>x<sup>m</sup> +
-            x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            represents the reduction polynomial <code>f(z)</code>.<br/>
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mFieldElement.k3">
-            Tpb: Always set to <code>0</code><br/>
-            Ppb: The integer <code>k3</code> where <code>x<sup>m</sup> +
-            x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            represents the reduction polynomial <code>f(z)</code>.<br/>
-        </member>
         <member name="F:Org.BouncyCastle.Math.EC.F2mFieldElement.x">
-            The <code>IntArray</code> holding the bits.
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.F2mFieldElement.t">
-            The number of <code>int</code>s required to hold <code>m</code> bits.
+            The <code>LongArray</code> holding the bits.
         </member>
         <member name="M:Org.BouncyCastle.Math.EC.F2mFieldElement.#ctor(System.Int32,System.Int32,System.Int32,System.Int32,Org.BouncyCastle.Math.BigInteger)">
             Constructor for Ppb.
@@ -14697,27 +15867,6 @@
             x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
             represents the reduction polynomial <code>f(z)</code>.<br/>
         </member>
-        <member name="T:Org.BouncyCastle.Math.EC.ECPoint">
-            base class for points on elliptic curves.
-        </member>
-        <member name="M:Org.BouncyCastle.Math.EC.ECPoint.SetPreCompInfo(Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
-            Sets the <code>PreCompInfo</code>. Used by <code>ECMultiplier</code>s
-            to save the precomputation for this <code>ECPoint</code> to store the
-            precomputation result for use by subsequent multiplication.
-            @param preCompInfo The values precomputed by the
-            <code>ECMultiplier</code>.
-        </member>
-        <member name="M:Org.BouncyCastle.Math.EC.ECPoint.AssertECMultiplier">
-            Sets the appropriate <code>ECMultiplier</code>, unless already set. 
-        </member>
-        <member name="M:Org.BouncyCastle.Math.EC.ECPointBase.GetEncoded(System.Boolean)">
-            return the field element encoded with point compression. (S 4.3.6)
-        </member>
-        <member name="M:Org.BouncyCastle.Math.EC.ECPointBase.Multiply(Org.BouncyCastle.Math.BigInteger)">
-            Multiplies this <code>ECPoint</code> by the given number.
-            @param k The multiplicator.
-            @return <code>k * this</code>.
-        </member>
         <member name="T:Org.BouncyCastle.Math.EC.FpPoint">
             Elliptic curve points over Fp
         </member>
@@ -14735,9 +15884,6 @@
              @param x affine x co-ordinate
              @param y affine y co-ordinate
              @param withCompression if true encode with point compression
-        </member>
-        <member name="M:Org.BouncyCastle.Math.EC.FpPoint.AssertECMultiplier">
-            Sets the default <code>ECMultiplier</code>, unless already set. 
         </member>
         <member name="T:Org.BouncyCastle.Math.EC.F2mPoint">
             Elliptic curve points over F2m
@@ -14781,33 +15927,50 @@
             <code>this</code>.
             @return <code>this - b</code>
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.F2mPoint.AssertECMultiplier">
-            Sets the appropriate <code>ECMultiplier</code>, unless already set. 
-        </member>
         <member name="T:Org.BouncyCastle.Math.EC.Multiplier.ECMultiplier">
             Interface for classes encapsulating a point multiplication algorithm
             for <code>ECPoint</code>s.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.ECMultiplier.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger,Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.ECMultiplier.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
             Multiplies the <code>ECPoint p</code> by <code>k</code>, i.e.
             <code>p</code> is added <code>k</code> times to itself.
             @param p The <code>ECPoint</code> to be multiplied.
-            @param k The factor by which <code>p</code> i multiplied.
+            @param k The factor by which <code>p</code> is multiplied.
             @return <code>p</code> multiplied by <code>k</code>.
         </member>
-        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.FpNafMultiplier">
-            Class implementing the NAF (Non-Adjacent Form) multiplication algorithm.
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.DoubleAddMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
+            Joye's double-add algorithm.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.FpNafMultiplier.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger,Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
-            D.3.2 pg 101
-            @see org.bouncycastle.math.ec.multiplier.ECMultiplier#multiply(org.bouncycastle.math.ec.ECPoint, java.math.BigInteger)
+        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.FixedPointPreCompInfo">
+            Class holding precomputation data for fixed-point multiplications.
         </member>
         <member name="T:Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo">
             Interface for classes storing precomputation data for multiplication
             algorithms. Used as a Memento (see GOF patterns) for
             <code>WNafMultiplier</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.ReferenceMultiplier.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger,Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
+        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.FixedPointPreCompInfo.m_preComp">
+            Array holding the precomputed <code>ECPoint</code>s used for a fixed
+            point multiplication.
+        </member>
+        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.MixedNafR2LMultiplier">
+            Class implementing the NAF (Non-Adjacent Form) multiplication algorithm (right-to-left) using
+            mixed coordinates.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.MixedNafR2LMultiplier.#ctor">
+            By default, addition will be done in Jacobian coordinates, and doubling will be done in
+            Modified Jacobian coordinates (independent of the original coordinate system of each point).
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.MontgomeryLadderMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
+            Montgomery ladder.
+        </member>
+        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.NafL2RMultiplier">
+            Class implementing the NAF (Non-Adjacent Form) multiplication algorithm (left-to-right).
+        </member>
+        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.NafR2LMultiplier">
+            Class implementing the NAF (Non-Adjacent Form) multiplication algorithm (right-to-left).
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.ReferenceMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
             Simple shift-and-add multiplication. Serves as reference implementation
             to verify (possibly faster) implementations in
             {@link org.bouncycastle.math.ec.ECPoint ECPoint}.
@@ -14816,11 +15979,40 @@
             @param k The factor by which to multiply.
             @return The result of the point multiplication <code>k * p</code>.
         </member>
-        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.WNafMultiplier">
+        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.WNafL2RMultiplier">
             Class implementing the WNAF (Window Non-Adjacent Form) multiplication
             algorithm.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafMultiplier.WindowNaf(System.SByte,Org.BouncyCastle.Math.BigInteger)">
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafL2RMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
+            Multiplies <code>this</code> by an integer <code>k</code> using the
+            Window NAF method.
+            @param k The integer by which <code>this</code> is multiplied.
+            @return A new <code>ECPoint</code> which equals <code>this</code>
+            multiplied by <code>k</code>.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafL2RMultiplier.GetWindowSize(System.Int32)">
+            Determine window width to use for a scalar multiplication of the given size.
+            
+            @param bits the bit-length of the scalar to multiply by
+            @return the window size to use
+        </member>
+        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo">
+            Class holding precomputation data for the WNAF (Window Non-Adjacent Form)
+            algorithm.
+        </member>
+        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo.m_preComp">
+            Array holding the precomputed <code>ECPoint</code>s used for a Window
+            NAF multiplication.
+        </member>
+        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo.m_preCompNeg">
+            Array holding the negations of the precomputed <code>ECPoint</code>s used
+            for a Window NAF multiplication.
+        </member>
+        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo.m_twice">
+            Holds an <code>ECPoint</code> representing Twice(this). Used for the
+            Window NAF multiplication to create or extend the precomputed values.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafUtilities.GenerateWindowNaf(System.Int32,Org.BouncyCastle.Math.BigInteger)">
             Computes the Window NAF (non-adjacent Form) of an integer.
             @param width The width <code>w</code> of the Window NAF. The width is
             defined as the minimal number <code>w</code>, such that for any
@@ -14828,38 +16020,28 @@
             most one is non-zero.
             @param k The integer of which the Window NAF is computed.
             @return The Window NAF of the given width, such that the following holds:
-            <code>k = &#8722;<sub>i=0</sub><sup>l-1</sup> k<sub>i</sub>2<sup>i</sup>
+            <code>k = &amp;sum;<sub>i=0</sub><sup>l-1</sup> k<sub>i</sub>2<sup>i</sup>
             </code>, where the <code>k<sub>i</sub></code> denote the elements of the
-            returned <code>sbyte[]</code>.
+            returned <code>byte[]</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafMultiplier.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger,Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
-            Multiplies <code>this</code> by an integer <code>k</code> using the
-            Window NAF method.
-            @param k The integer by which <code>this</code> is multiplied.
-            @return A new <code>ECPoint</code> which equals <code>this</code>
-            multiplied by <code>k</code>.
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafUtilities.GetWindowSize(System.Int32)">
+            Determine window width to use for a scalar multiplication of the given size.
+            
+            @param bits the bit-length of the scalar to multiply by
+            @return the window size to use
         </member>
-        <member name="T:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo">
-            Class holding precomputation data for the WNAF (Window Non-Adjacent Form)
-            algorithm.
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo.preComp">
-            Array holding the precomputed <code>ECPoint</code>s used for the Window
-            NAF multiplication in <code>
-            {@link org.bouncycastle.math.ec.multiplier.WNafMultiplier.multiply()
-            WNafMultiplier.multiply()}</code>.
-        </member>
-        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WNafPreCompInfo.twiceP">
-            Holds an <code>ECPoint</code> representing twice(this). Used for the
-            Window NAF multiplication in <code>
-            {@link org.bouncycastle.math.ec.multiplier.WNafMultiplier.multiply()
-            WNafMultiplier.multiply()}</code>.
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WNafUtilities.GetWindowSize(System.Int32,System.Int32[])">
+            Determine window width to use for a scalar multiplication of the given size.
+            
+            @param bits the bit-length of the scalar to multiply by
+            @param windowSizeCutoffs a monotonically increasing list of bit sizes at which to increment the window width
+            @return the window size to use
         </member>
         <member name="T:Org.BouncyCastle.Math.EC.Multiplier.WTauNafMultiplier">
             Class implementing the WTNAF (Window
             <code>&#964;</code>-adic Non-Adjacent Form) algorithm.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WTauNafMultiplier.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger,Org.BouncyCastle.Math.EC.Multiplier.PreCompInfo)">
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WTauNafMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
             Multiplies a {@link org.bouncycastle.math.ec.F2mPoint F2mPoint}
             by <code>k</code> using the reduced <code>&#964;</code>-adic NAF (RTNAF)
             method.
@@ -14890,24 +16072,17 @@
             Class holding precomputation data for the WTNAF (Window
             <code>&#964;</code>-adic Non-Adjacent Form) algorithm.
         </member>
-        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WTauNafPreCompInfo.preComp">
+        <member name="F:Org.BouncyCastle.Math.EC.Multiplier.WTauNafPreCompInfo.m_preComp">
             Array holding the precomputed <code>F2mPoint</code>s used for the
             WTNAF multiplication in <code>
             {@link org.bouncycastle.math.ec.multiplier.WTauNafMultiplier.multiply()
             WTauNafMultiplier.multiply()}</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WTauNafPreCompInfo.#ctor(Org.BouncyCastle.Math.EC.F2mPoint[])">
-            Constructor for <code>WTauNafPreCompInfo</code>
-            @param preComp Array holding the precomputed <code>F2mPoint</code>s
-            used for the WTNAF multiplication in <code>
-            {@link org.bouncycastle.math.ec.multiplier.WTauNafMultiplier.multiply()
-            WTauNafMultiplier.multiply()}</code>.
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.ZSignedDigitL2RMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
+            'Zeroless' Signed Digit Left-to-Right.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.WTauNafPreCompInfo.GetPreComp">
-            @return the array holding the precomputed <code>F2mPoint</code>s
-            used for the WTNAF multiplication in <code>
-            {@link org.bouncycastle.math.ec.multiplier.WTauNafMultiplier.multiply()
-            WTauNafMultiplier.multiply()}</code>.
+        <member name="M:Org.BouncyCastle.Math.EC.Multiplier.ZSignedDigitR2LMultiplier.MultiplyPositive(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
+            'Zeroless' Signed Digit Right-to-Left.
         </member>
         <member name="T:Org.BouncyCastle.Ocsp.BasicOcspResp">
             <remarks>
@@ -17399,7 +18574,7 @@
             <param name="certStores">a List containing only X509Store objects. These
             are used to search for certificates.</param>
             <returns>a Collection of all found <see cref="T:Org.BouncyCastle.X509.X509Certificate"/> or
-            org.bouncycastle.x509.X509AttributeCertificate objects.
+            <see cref="T:Org.BouncyCastle.X509.IX509AttributeCertificate"/> objects.
             May be empty but never <code>null</code>.</returns>
             <exception cref="T:System.Exception"></exception>
         </member>
@@ -18648,6 +19823,18 @@
             </param>
             <returns>The number of bytes actually transferred, if not greater than <c>limit</c></returns>
             <exception cref="T:System.IO.IOException"></exception>
+        </member>
+        <member name="T:Org.BouncyCastle.Utilities.MemoableResetException">
+            Exception to be thrown on a failure to reset an object implementing Memoable.
+            <p>
+            The exception extends InvalidCastException to enable users to have a single handling case,
+            only introducing specific handling of this one if required.
+            </p>
+        </member>
+        <member name="M:Org.BouncyCastle.Utilities.MemoableResetException.#ctor(System.String)">
+             Basic Constructor.
+            
+             @param msg message to be associated with this exception.
         </member>
         <member name="M:Org.BouncyCastle.Utilities.Net.IPAddress.IsValid(System.String)">
              Validate the given IPv4 or IPv6 address.
@@ -20136,7 +21323,7 @@
             standard vector test for MD4 from RFC 1320.
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.MD5DigestTest">
-            <remarks>Standard vector test for MD5 from "Handbook of Applied Cryptography", page 345.</remarks>
+            standard vector test for MD5 from "Handbook of Applied Cryptography", page 345.
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.MD5HMacTest">
             <remarks> MD5 HMac Test, test vectors from RFC 2202</remarks>
@@ -20165,7 +21352,7 @@
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.OcbTest">
             Test vectors from the "work in progress" Internet-Draft <a
-            href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-03">The OCB Authenticated-Encryption
+            href="http://tools.ietf.org/html/draft-irtf-cfrg-ocb-07">The OCB Authenticated-Encryption
             Algorithm</a>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.PaddingTest">
@@ -20230,22 +21417,22 @@
             http://fp.gladman.plus.com/cryptography_technology/rijndael/</a>
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.RipeMD128DigestTest">
-            RipeMD128 IDigest Test
+            RIPEMD128 Digest Test
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.RipeMD128HMacTest">
             RipeMD128 HMac Test, test vectors from RFC 2286
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.RipeMD160DigestTest">
-            RipeMD160 IDigest Test
+            RIPEMD160 Digest Test
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.RipeMD160HMacTest">
             RipeMD160 HMac Test, test vectors from RFC 2286
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.RipeMD256DigestTest">
-            <summary> RipeMD256 IDigest Test</summary>
+            RIPEMD256 Digest Test
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.RipeMD320DigestTest">
-            <summary> RipeMD320 IDigest Test</summary>
+            RIPEMD320 Digest Test
         </member>
         <member name="M:Org.BouncyCastle.Crypto.Tests.RsaTest.doTestBadSig">
             signature with a "forged signature" (sig block not at end of plain text)
@@ -20319,6 +21506,9 @@
             Aumasson and Daniel J. Bernstein (https://131002.net/siphash/siphash.pdf), Appendix A.
             </summary>
         </member>
+        <member name="T:Org.BouncyCastle.Crypto.Tests.SM3DigestTest">
+            standard vector test for SM3 digest from chinese specification
+        </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.StreamCipherVectorTest">
             a basic test that takes a stream cipher, key parameter, and an input
             and output string.
@@ -20336,8 +21526,8 @@
             VMPC Test
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.WhirlpoolDigestTest">
-             ISO vector test for Whirlpool
-            
+            ISO vector test for Whirlpool
+             
         </member>
         <member name="T:Org.BouncyCastle.Crypto.Tests.XSalsa20Test">
             XSalsa20 Test
@@ -20362,7 +21552,7 @@
             Tests, if inconsistent points can be created, i.e. points with exactly
             one null coordinate (not permitted).
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestAdd(Org.BouncyCastle.Math.EC.ECPoint[],Org.BouncyCastle.Math.EC.ECPoint)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestAdd(Org.BouncyCastle.Math.EC.ECPoint[],Org.BouncyCastle.Math.EC.ECPoint)">
              Tests <code>ECPoint.add()</code> against literature values.
             
              @param p
@@ -20374,7 +21564,7 @@
             Calls <code>implTestAdd()</code> for <code>Fp</code> and
             <code>F2m</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestTwice(Org.BouncyCastle.Math.EC.ECPoint[])">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestTwice(Org.BouncyCastle.Math.EC.ECPoint[])">
              Tests <code>ECPoint.twice()</code> against literature values.
             
              @param p
@@ -20384,7 +21574,11 @@
             Calls <code>implTestTwice()</code> for <code>Fp</code> and
             <code>F2m</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestAllPoints(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.EC.ECPoint)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.TestThreeTimes">
+            Calls <code>implTestThreeTimes()</code> for <code>Fp</code> and
+            <code>F2m</code>.
+        </member>
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestAllPoints(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.EC.ECPoint)">
              Goes through all points on an elliptic curve and checks, if adding a
              point <code>k</code>-times is the same as multiplying the point by
              <code>k</code>, for all <code>k</code>. Should be called for points
@@ -20399,7 +21593,7 @@
             Calls <code>implTestAllPoints()</code> for the small literature curves,
             both for <code>Fp</code> and <code>F2m</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.Multiply(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.BigInteger)">
              Simple shift-and-add multiplication. Serves as reference implementation
              to verify (possibly faster) implementations in
              {@link org.bouncycastle.math.ec.ECPoint ECPoint}.
@@ -20410,7 +21604,7 @@
                         The multiplier.
              @return The result of the point multiplication <code>kP</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestMultiply(Org.BouncyCastle.Math.EC.ECPoint,System.Int32)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestMultiply(Org.BouncyCastle.Math.EC.ECPoint,System.Int32)">
              Checks, if the point multiplication algorithm of the given point yields
              the same result as point multiplication done by the reference
              implementation given in <code>multiply()</code>. This method chooses a
@@ -20422,7 +21616,7 @@
                         The bitlength of the random number by which <code>p</code>
                         is multiplied.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestMultiplyAll(Org.BouncyCastle.Math.EC.ECPoint,System.Int32)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestMultiplyAll(Org.BouncyCastle.Math.EC.ECPoint,System.Int32)">
              Checks, if the point multiplication algorithm of the given point yields
              the same result as point multiplication done by the reference
              implementation given in <code>multiply()</code>. This method tests
@@ -20434,7 +21628,7 @@
              @param numBits
                         Try every multiplier up to this bitlength
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestAddSubtract(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.EC.ECPoint)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestAddSubtract(Org.BouncyCastle.Math.EC.ECPoint,Org.BouncyCastle.Math.EC.ECPoint)">
              Tests <code>ECPoint.add()</code> and <code>ECPoint.subtract()</code>
              for the given point and the given point at infinity.
             
@@ -20447,7 +21641,7 @@
             Calls <code>implTestAddSubtract()</code> for literature values, both
             for <code>Fp</code> and <code>F2m</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.implTestEncoding(Org.BouncyCastle.Math.EC.ECPoint)">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.ImplTestEncoding(Org.BouncyCastle.Math.EC.ECPoint)">
              Test encoding with and without point compression.
             
              @param p
@@ -20461,13 +21655,13 @@
         <member name="T:Org.BouncyCastle.Math.EC.Tests.ECPointTest.Fp">
             Nested class containing sample literature values for <code>Fp</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.Fp.createPoints">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.Fp.CreatePoints">
             Creates the points on the curve with literature values.
         </member>
         <member name="T:Org.BouncyCastle.Math.EC.Tests.ECPointTest.F2m">
             Nested class containing sample literature values for <code>F2m</code>.
         </member>
-        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.F2m.createPoints">
+        <member name="M:Org.BouncyCastle.Math.EC.Tests.ECPointTest.F2m.CreatePoints">
             Creates the points on the curve with literature values.
         </member>
         <member name="F:Org.BouncyCastle.Ocsp.Tests.OcspTest.irregReq">
