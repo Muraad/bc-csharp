@@ -124,8 +124,27 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
          */
         public override ECFieldElement Sqrt()
         {
-            ECFieldElement root = new FpFieldElement(Q, ToBigInteger()).Sqrt();
-            return root == null ? null : new SecP224R1FieldElement(root.ToBigInteger());
+            uint[] c = this.x;
+            if (Nat224.IsZero(c) || Nat224.IsOne(c))
+                return this;
+
+            uint[] nc = Nat224.Create();
+            SecP224R1Field.Negate(c, nc);
+
+            uint[] r = Mod.Random(SecP224R1Field.P);
+            uint[] t = Nat224.Create();
+
+            if (!IsSquare(c))
+                return null;
+
+            while (!TrySqrt(nc, r, t))
+            {
+                SecP224R1Field.AddOne(r, r);
+            }
+
+            SecP224R1Field.Square(t, r);
+
+            return Nat224.Eq(c, r) ? new SecP224R1FieldElement(t) : null;
         }
 
         public override bool Equals(object obj)
@@ -150,6 +169,100 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
         public override int GetHashCode()
         {
             return Q.GetHashCode() ^ Arrays.GetHashCode(x, 0, 7);
+        }
+
+        private static bool IsSquare(uint[] x)
+        {
+            uint[] t1 = Nat224.Create();
+            uint[] t2 = Nat224.Create();
+            Nat224.Copy(x, t1);
+
+            for (int i = 0; i < 7; ++i)
+            {
+                Nat224.Copy(t1, t2);
+                SecP224R1Field.SquareN(t1, 1 << i, t1);
+                SecP224R1Field.Multiply(t1, t2, t1);
+            }
+
+            SecP224R1Field.SquareN(t1, 95, t1);
+            return Nat224.IsOne(t1);
+        }
+
+        private static void RM(uint[] nc, uint[] d0, uint[] e0, uint[] d1, uint[] e1, uint[] f1, uint[] t)
+        {
+            SecP224R1Field.Multiply(e1, e0, t);
+            SecP224R1Field.Multiply(t, nc, t);
+            SecP224R1Field.Multiply(d1, d0, f1);
+            SecP224R1Field.Add(f1, t, f1);
+            SecP224R1Field.Multiply(d1, e0, t);
+            Nat224.Copy(f1, d1);
+            SecP224R1Field.Multiply(e1, d0, e1);
+            SecP224R1Field.Add(e1, t, e1);
+            SecP224R1Field.Square(e1, f1);
+            SecP224R1Field.Multiply(f1, nc, f1);
+        }
+
+        private static void RP(uint[] nc, uint[] d1, uint[] e1, uint[] f1, uint[] t)
+        {
+            Nat224.Copy(nc, f1);
+
+            uint[] d0 = Nat224.Create();
+            uint[] e0 = Nat224.Create();
+
+            for (int i = 0; i < 7; ++i)
+            {
+                Nat224.Copy(d1, d0);
+                Nat224.Copy(e1, e0);
+
+                int j = 1 << i;
+                while (--j >= 0)
+                {
+                    RS(d1, e1, f1, t);
+                }
+
+                RM(nc, d0, e0, d1, e1, f1, t);
+            }
+        }
+
+        private static void RS(uint[] d, uint[] e, uint[] f, uint[] t)
+        {
+            SecP224R1Field.Multiply(e, d, e);
+            SecP224R1Field.Twice(e, e);
+            SecP224R1Field.Square(d, t);
+            SecP224R1Field.Add(f, t, d);
+            SecP224R1Field.Multiply(f, t, f);
+            uint c = Nat.ShiftUpBits(7, f, 2, 0);
+            SecP224R1Field.Reduce32(c, f);
+        }
+
+        private static bool TrySqrt(uint[] nc, uint[] r, uint[] t)
+        {
+            uint[] d1 = Nat224.Create();
+            Nat224.Copy(r, d1);
+            uint[] e1 = Nat224.Create();
+            e1[0] = 1;
+            uint[] f1 = Nat224.Create();
+            RP(nc, d1, e1, f1, t);
+
+            uint[] d0 = Nat224.Create();
+            uint[] e0 = Nat224.Create();
+
+            for (int k = 1; k < 96; ++k)
+            {
+                Nat224.Copy(d1, d0);
+                Nat224.Copy(e1, e0);
+
+                RS(d1, e1, f1, t);
+
+                if (Nat224.IsZero(d1))
+                {
+                    Mod.Invert(SecP224R1Field.P, e0, t);
+                    SecP224R1Field.Multiply(t, d0, t);
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
