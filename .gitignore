@@ -226,3 +226,11 @@ pip-log.txt
 **/dist
 **/obj
 >>>>>>> upstream/master
+crypto/bin/Debug/crypto.dll
+crypto/bin/Debug/crypto.dll
+crypto/bin/Debug/crypto.dll
+crypto/bin/Debug/crypto.xml
+crypto/obj/Debug/crypto.csproj.FileListAbsolute.txt
+crypto/obj/Debug/crypto.csprojResolveAssemblyReference.cache
+crypto/obj/Debug/crypto.dll
+crypto/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
