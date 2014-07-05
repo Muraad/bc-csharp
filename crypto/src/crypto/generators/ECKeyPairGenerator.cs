@@ -100,14 +100,28 @@ namespace Org.BouncyCastle.Crypto.Generators
             
             BigInteger n = parameters.N;
             BigInteger d;
+            int minWeight = n.BitLength >> 2;
 
-            do
+            for (;;)
             {
                 d = new BigInteger(n.BitLength, random);
-            }
-            while (d.SignValue == 0 || (d.CompareTo(n) >= 0));
 
-            ECPoint q = new FixedPointCombMultiplier().Multiply(parameters.G, d);
+                if (d.CompareTo(BigInteger.Two) < 0 || d.CompareTo(n) >= 0)
+                    continue;
+
+                /*
+                 * Require a minimum weight of the NAF representation, since low-weight primes may be
+                 * weak against a version of the number-field-sieve for the discrete-logarithm-problem.
+                 * 
+                 * See "The number field sieve for integers of low weight", Oliver Schirokauer.
+                 */
+                if (WNafUtilities.GetNafWeight(d) < minWeight)
+                    continue;
+
+                break;
+            }
+
+            ECPoint q = CreateBasePointMultiplier().Multiply(parameters.G, d);
 
             if (publicKeyParamSet != null)
             {
@@ -119,6 +133,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             return new AsymmetricCipherKeyPair(
                 new ECPublicKeyParameters(algorithm, q, parameters),
                 new ECPrivateKeyParameters(algorithm, d, parameters));
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier()
+        {
+            return new FixedPointCombMultiplier();
         }
 
         internal static X9ECParameters FindECCurveByOid(DerObjectIdentifier oid)

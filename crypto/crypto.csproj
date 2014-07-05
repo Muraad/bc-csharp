@@ -8380,11 +8380,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\cms\NullOutputStream.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "src\cms\OriginatorId.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -9815,7 +9810,17 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\BulkCipherAlgorithm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ByteQueue.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\CertChainType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9825,12 +9830,32 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\CertificateStatusType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\CertificateRequest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\ChangeCipherSpec.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\CipherSuite.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\CipherType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\ClientAuthenticationType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9846,6 +9871,11 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\CompressionMethod.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\ConnectionEnd.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9880,6 +9910,16 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\DigestInputBuffer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\ECBasisType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ECCurveType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -9895,6 +9935,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\ExporterLabel.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\ExtensionType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -9906,6 +9951,16 @@
                 />
                 <File
                     RelPath = "src\crypto\tls\HashAlgorithm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\HeartbeatMessageType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\HeartbeatMode.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9930,7 +9985,22 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\MacAlgorithm.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\MaxFragmentLength.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\NamedCurve.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\NameType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -9970,12 +10040,27 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\SignerInputBuffer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\SrpTlsClient.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\SrtpProtectionProfile.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\Ssl3Mac.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\tls\SupplementalDataType.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10100,6 +10185,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsPeer.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsProtocolHandler.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10160,6 +10250,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\UserMappingType.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\util\Pack.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10190,6 +10285,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\ECPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\LongArray.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10201,6 +10301,16 @@
                 />
                 <File
                     RelPath = "src\math\ec\Nat.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\ScaleXPointMap.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\ScaleYPointMap.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10220,7 +10330,22 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "src\math\ec\custom\sec\Curve25519Field.cs"
+                    RelPath = "src\math\ec\custom\djb\Curve25519.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\djb\Curve25519Field.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\djb\Curve25519FieldElement.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\custom\djb\Curve25519Point.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -10410,6 +10535,26 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\math\ec\endo\ECEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvTypeBEndomorphism.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\endo\GlvTypeBParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\math\ec\multiplier\AbstractECMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -10436,6 +10581,11 @@
                 />
                 <File
                     RelPath = "src\math\ec\multiplier\FixedPointUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\math\ec\multiplier\GlvMultiplier.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11401,6 +11551,11 @@
                 />
                 <File
                     RelPath = "src\util\io\BaseOutputStream.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\util\io\NullOutputStream.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -16039,6 +16194,11 @@
                 />
                 <File
                     RelPath = "test\src\math\ec\test\ECPointPerformanceTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\math\ec\test\ECAlgorithmsTest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

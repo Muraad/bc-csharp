@@ -2,20 +2,23 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Tls
 {
-	public enum DigestAlgorithm
-	{
-		/*
-		 * Note that the values here are implementation-specific and arbitrary.
-		 * It is recommended not to depend on the particular values (e.g. serialization).
-		 */
-		NULL,
-		MD5,
-		SHA,
+    /// <summary>RFC 2246</summary>
+    /// <remarks>
+    /// Note that the values here are implementation-specific and arbitrary. It is recommended not to
+    /// depend on the particular values (e.g. serialization).
+    /// </remarks>
+    [Obsolete("Use MacAlgorithm constants instead")]
+    public enum DigestAlgorithm
+    {
+        NULL,
+        MD5,
+        SHA,
 
-		/*
-		 * RFC 5289
-		 */
-		SHA256,
-		SHA384,
-	}
+        /*
+         * RFC 5246
+         */
+        SHA256,
+        SHA384,
+        SHA512,
+    }
 }
