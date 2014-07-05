@@ -10,6 +10,10 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Generators;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -90,6 +94,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				case PublicKeyAlgorithmTag.ElGamalGeneral:
 					encAlg = "ElGamal";
 					break;
+                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.ECDsa:
+                    encAlg = "ECDSA";
+                    break;
 				default:
 					throw new PgpException("unknown algorithm tag in signature:" + keyAlgorithm);
             }

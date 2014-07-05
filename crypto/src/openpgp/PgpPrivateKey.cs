@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     {
         private readonly long keyId;
         private readonly AsymmetricKeyParameter privateKey;
-
+        private readonly PublicKeyPacket publicKeyPacket;
 		/// <summary>
 		/// Create a PgpPrivateKey from a regular private key and the ID of its
 		/// associated public key.
@@ -27,6 +27,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.keyId = keyId;
         }
 
+        public PgpPrivateKey(
+            AsymmetricKeyParameter privateKey,
+            long keyId,
+            PublicKeyPacket pubKeyPacket)
+        {
+            if (!privateKey.IsPrivate)
+                throw new ArgumentException("Expected a private key", "privateKey");
+
+            this.privateKey = privateKey;
+            this.keyId = keyId;
+            this.publicKeyPacket = pubKeyPacket;
+        }
+
 		/// <summary>The keyId associated with the contained private key.</summary>
         public long KeyId
         {
@@ -37,6 +50,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public AsymmetricKeyParameter Key
         {
 			get { return privateKey; }
+        }
+
+        public PublicKeyPacket PublicKeyPacket
+        {
+            get { return publicKeyPacket; }
         }
     }
 }

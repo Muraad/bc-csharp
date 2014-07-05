@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
                     return "ElGamalEncrypt";
                 case PublicKeyAlgorithmTag.Dsa:
                     return "DSA";
-                case PublicKeyAlgorithmTag.EC:
+                case PublicKeyAlgorithmTag.ECDH:
                     return "EC";
                 case PublicKeyAlgorithmTag.ECDsa:
                     return "ECDSA";

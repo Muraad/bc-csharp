@@ -44,6 +44,9 @@ namespace Org.BouncyCastle.Bcpg
 						new MPInteger(bcpgIn).Value
 					};
 					break;
+                case PublicKeyAlgorithmTag.ECDH:
+                    data = new BigInteger[]{new MPInteger(bcpgIn).Value};
+                    break;
 				default:
 					throw new IOException("unknown PGP public key algorithm encountered");
 			}

@@ -148,6 +148,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				bcpgKey = new ElGamalPublicBcpgKey(eS.P, eS.G, eK.Y);
             }
+            else if (pubKey is ECPublicKeyParameters)
+            {
+                ECPublicKeyParameters eK = (ECPublicKeyParameters)pubKey;
+
+                if (algorithm == PublicKeyAlgorithmTag.ECDH)
+                {
+                    // TODO: KDF parameters
+                    bcpgKey = new EcdhPublicBcpgKey(eK.PublicKeyParamSet, eK.Q, HashAlgorithmTag.Sha512, SymmetricKeyAlgorithmTag.Aes256);
+                }
+                else
+                {
+                    bcpgKey = new EcdsaPublicBcpgKey(eK.PublicKeyParamSet, eK.Q);
+                }
+            }
             else
             {
                 throw new PgpException("unknown key class");
@@ -378,6 +392,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					case PublicKeyAlgorithmTag.ElGamalGeneral:
 					case PublicKeyAlgorithmTag.RsaEncrypt:
 					case PublicKeyAlgorithmTag.RsaGeneral:
+                    case PublicKeyAlgorithmTag.ECDH:
 						return true;
 					default:
 						return false;
@@ -424,6 +439,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey) publicPk.Key;
                         return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
+                    case PublicKeyAlgorithmTag.ECDH:
+                        EcdhPublicBcpgKey ecdhK = (EcdhPublicBcpgKey)publicPk.Key;
+                        return new ECPublicKeyParameters("ECDH", ecdhK.Point, ecdhK.CurveOid);
+                    case PublicKeyAlgorithmTag.ECDsa:
+                        EcdsaPublicBcpgKey ecdsaK = (EcdsaPublicBcpgKey)publicPk.Key;
+                        return new ECPublicKeyParameters("ECDSA", ecdsaK.Point, ecdsaK.CurveOid);
                     default:
                         throw new PgpException("unknown public key algorithm encountered");
                 }

@@ -7,6 +7,10 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Bcpg;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -85,7 +89,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		/// <summary>Return the decrypted data stream for the packet.</summary>
         public Stream GetDataStream(PgpPrivateKey privKey, HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
-			byte[] plain = fetchSymmetricKeyData(privKey);
+            byte[] plain = null;
+            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
+                plain = decryptSessionData(privKey);
+			else 
+                plain = fetchSymmetricKeyData(privKey);
 
 			IBufferedCipher c2;
 			string cipherName = PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag) plain[0]);
@@ -179,6 +187,119 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("Exception starting decryption", e);
             }
 		}
+
+        private byte[] getFingerprint(PublicKeyPacket publicPk)
+        {
+            IBcpgKey key = publicPk.Key;
+            byte[] fingerprint = null;
+
+            if (publicPk.Version <= 3)
+            {
+                RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
+
+                try
+                {
+                    IDigest digest = DigestUtilities.GetDigest("MD5");
+
+                    byte[] bytes = rK.Modulus.ToByteArrayUnsigned();
+                    digest.BlockUpdate(bytes, 0, bytes.Length);
+
+                    bytes = rK.PublicExponent.ToByteArrayUnsigned();
+                    digest.BlockUpdate(bytes, 0, bytes.Length);
+
+                    fingerprint = DigestUtilities.DoFinal(digest);
+                }
+                //catch (NoSuchAlgorithmException)
+                catch (Exception e)
+                {
+                    throw new IOException("can't find MD5", e);
+                }
+            }
+            else
+            {
+                byte[] kBytes = publicPk.GetEncodedContents();
+
+                try
+                {
+                    IDigest digest = DigestUtilities.GetDigest("SHA1");
+
+                    digest.Update(0x99);
+                    digest.Update((byte)(kBytes.Length >> 8));
+                    digest.Update((byte)kBytes.Length);
+                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
+                    fingerprint = DigestUtilities.DoFinal(digest);
+                }
+                catch (Exception e)
+                {
+                    throw new IOException("can't find SHA1", e);
+                }
+            }
+            return fingerprint;
+        }
+
+        private byte[] decryptSessionData(PgpPrivateKey privateKey)
+        {
+            ECPrivateKeyParameters keyParams = (ECPrivateKeyParameters)privateKey.Key;
+
+            EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)privateKey.PublicKeyPacket.Key;
+            X9ECParameters x9Params = NistNamedCurves.GetByOid(ecKey.CurveOid);
+            ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
+
+            byte[] enc = keyData.GetEncSessionKey()[0].ToByteArrayUnsigned();
+
+            int pLen = ((((enc[0] & 0xff) << 8) + (enc[1] & 0xff)) + 7) / 8;
+            byte[] pEnc = new byte[pLen];
+
+            Array.Copy(enc, 2, pEnc, 0, pLen);
+
+            byte[] keyEnc = new byte[enc[pLen + 2]];
+
+            Array.Copy(enc, 2 + pLen + 1, keyEnc, 0, keyEnc.Length);
+
+            IWrapper c = WrapperUtilities.GetWrapper(PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag)ecKey.SymmetricKeyAlgorithm) + "WRAP");
+
+            ECPoint S = x9Params.Curve.DecodePoint(pEnc).Multiply(keyParams.D).Normalize();
+
+            IDigest digest = DigestUtilities.GetDigest(PgpUtilities.GetDigestName((HashAlgorithmTag)ecKey.HashAlgorithm));
+            RFC6637KDFCalculator rfc6637KDFCalculator = new RFC6637KDFCalculator(digest, ecKey.SymmetricKeyAlgorithm);
+
+            byte[] keyBytes = rfc6637KDFCalculator.CreateKey(ecKey.CurveOid, S, getFingerprint(privateKey.PublicKeyPacket));
+
+            KeyParameter keyEncryptionKey = ParameterUtilities.CreateKeyParameter(
+                PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag)ecKey.SymmetricKeyAlgorithm),
+                keyBytes);
+
+
+            try
+            {
+                c.Init(false, keyEncryptionKey);
+                byte[] paddedSessionKey = c.Unwrap(keyEnc, 0, keyEnc.Length);
+
+                return unpadSessionData(paddedSessionKey);
+            }
+            catch (InvalidKeyException e)
+            {
+                throw new PgpException("error setting asymmetric cipher", e);
+            }
+        }
+
+        private byte[] unpadSessionData(byte[] encoded)
+        {
+            byte padValue = encoded[encoded.Length - 1];
+
+            for (int i = encoded.Length - padValue; i != encoded.Length; i++)
+            {
+                if (encoded[i] != padValue)
+                {
+                    throw new PgpException("bad padding found in session data");
+                }
+            }
+
+            byte[] taggedKey = new byte[encoded.Length - padValue];
+
+            Array.Copy(encoded, 0, taggedKey, 0, taggedKey.Length);
+            return taggedKey;
+        }
 
 		private byte[] fetchSymmetricKeyData(
 			PgpPrivateKey privKey)

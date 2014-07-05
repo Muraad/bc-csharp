@@ -1410,6 +1410,10 @@
     <Compile Include="src\bcpg\DSASecretBCPGKey.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\bcpg\EcdhPublicBcpgKey.cs" />
+    <Compile Include="src\bcpg\EcdsaPublicBcpgKey.cs" />
+    <Compile Include="src\bcpg\EcPublicBcpgKey.cs" />
+    <Compile Include="src\bcpg\EcSecretBcpgKey.cs" />
     <Compile Include="src\bcpg\ElGamalPublicBCPGKey.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -3189,6 +3193,7 @@
     <Compile Include="src\openpgp\PGPV3SignatureGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\openpgp\RFC6637KdfCalculator.cs" />
     <Compile Include="src\openpgp\WrappedGeneratorStream.cs">
       <SubType>Code</SubType>
     </Compile>

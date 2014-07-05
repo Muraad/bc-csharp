@@ -9,6 +9,12 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Bcpg;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -92,30 +98,40 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				SecureRandom	random)
             {
                 IBufferedCipher c;
-
-				switch (pubKey.Algorithm)
+                byte[] encKey = null;
+                if (pubKey.Algorithm == PublicKeyAlgorithmTag.ECDH)
                 {
-                    case PublicKeyAlgorithmTag.RsaEncrypt:
-                    case PublicKeyAlgorithmTag.RsaGeneral:
-                        c = CipherUtilities.GetCipher("RSA//PKCS1Padding");
-                        break;
-                    case PublicKeyAlgorithmTag.ElGamalEncrypt:
-                    case PublicKeyAlgorithmTag.ElGamalGeneral:
-                        c = CipherUtilities.GetCipher("ElGamal/ECB/PKCS1Padding");
-                        break;
-                    case PublicKeyAlgorithmTag.Dsa:
-                        throw new PgpException("Can't use DSA for encryption.");
-                    case PublicKeyAlgorithmTag.ECDsa:
-                        throw new PgpException("Can't use ECDSA for encryption.");
-                    default:
-                        throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
+                    encKey = addECDHSessionInfo(pubKey, si, random);
                 }
+                else
+                {
+                    switch (pubKey.Algorithm)
+                    {
+                        case PublicKeyAlgorithmTag.RsaEncrypt:
+                        case PublicKeyAlgorithmTag.RsaGeneral:
+                            c = CipherUtilities.GetCipher("RSA//PKCS1Padding");
+                            break;
+                        case PublicKeyAlgorithmTag.ElGamalEncrypt:
+                        case PublicKeyAlgorithmTag.ElGamalGeneral:
+                            c = CipherUtilities.GetCipher("ElGamal/ECB/PKCS1Padding");
+                            break;
+                        case PublicKeyAlgorithmTag.ECDH:
+                            c = CipherUtilities.GetCipher("ECIES");
+                            break;
+                        case PublicKeyAlgorithmTag.Dsa:
+                            throw new PgpException("Can't use DSA for encryption.");
+                        case PublicKeyAlgorithmTag.ECDsa:
+                            throw new PgpException("Can't use ECDSA for encryption.");
+                        default:
+                            throw new PgpException("unknown asymmetric algorithm: " + pubKey.Algorithm);
+                    }
 
-				AsymmetricKeyParameter akp = pubKey.GetKey();
+                    AsymmetricKeyParameter akp = pubKey.GetKey();
 
-				c.Init(true, new ParametersWithRandom(akp, random));
+                    c.Init(true, new ParametersWithRandom(akp, random));
 
-				byte[] encKey = c.DoFinal(si);
+                    encKey = c.DoFinal(si);
+                }
 
 				switch (pubKey.Algorithm)
                 {
@@ -132,12 +148,82 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 							new BigInteger(1, encKey, halfLength, halfLength)
 						};
                         break;
+                    case PublicKeyAlgorithmTag.ECDH:
+                        data = new BigInteger[] { new BigInteger(1, encKey) };
+                        break;
                     default:
                         throw new PgpException("unknown asymmetric algorithm: " + encAlgorithm);
                 }
             }
 
-			public override void Encode(BcpgOutputStream pOut)
+            #region AddSessionInfo private Helper padSessionData and addECDHSessionInfo
+
+            private byte[] padSessionData(byte[] sessionInfo)
+            {
+                byte[] result = new byte[40];
+
+                Array.Copy(sessionInfo, 0, result, 0, sessionInfo.Length);
+
+                byte padValue = (byte)(result.Length - sessionInfo.Length);
+
+                for (int i = sessionInfo.Length; i != result.Length; i++)
+                {
+                    result[i] = padValue;
+                }
+
+                return result;
+            }
+
+            private byte[] addECDHSessionInfo(
+                PgpPublicKey pubKey,
+                byte[] si,
+                SecureRandom random)
+            {
+                EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)pubKey.publicPk.Key;
+                X9ECParameters x9Params = NistNamedCurves.GetByOid(ecKey.CurveOid);
+                ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
+
+                ECKeyPairGenerator gen = new ECKeyPairGenerator();
+                gen.Init(new ECKeyGenerationParameters(ecParams, random));
+
+                AsymmetricCipherKeyPair keyPair = gen.GenerateKeyPair();
+
+                byte[] publicEncodedBytes = ((ECPublicKeyParameters)keyPair.Public).Q.GetEncoded(false);
+
+                ECPrivateKeyParameters ephPriv = (ECPrivateKeyParameters)keyPair.Private;
+
+                ECPoint S = ecKey.Point.Multiply(ephPriv.D).Normalize();
+
+                IDigest digest = DigestUtilities.GetDigest(PgpUtilities.GetDigestName((HashAlgorithmTag)ecKey.HashAlgorithm));
+                RFC6637KDFCalculator rfc6637KDFCalculator = new RFC6637KDFCalculator(digest, ecKey.SymmetricKeyAlgorithm);
+                byte[] keyBytes = rfc6637KDFCalculator.CreateKey(ecKey.CurveOid, S, pubKey.GetFingerprint());
+
+                KeyParameter keyEncryptionKey = ParameterUtilities.CreateKeyParameter(
+                    PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag)ecKey.SymmetricKeyAlgorithm),
+                    keyBytes);
+
+                IWrapper wrapper = WrapperUtilities.GetWrapper("AESWRAP");
+                wrapper.Init(true, keyEncryptionKey);
+                byte[] encryptedKeyBytes = wrapper.Wrap(keyBytes, 0, keyBytes.Length);
+
+                byte[] paddedSessionData = padSessionData(si);
+
+                byte[] C = wrapper.Wrap(paddedSessionData, 0, paddedSessionData.Length);
+
+                byte[] VB = new MPInteger(new BigInteger(1, publicEncodedBytes)).GetEncoded();
+
+                byte[] rv = new byte[VB.Length + 1 + C.Length];
+
+                Array.Copy(VB, 0, rv, 0, VB.Length);
+                rv[VB.Length] = (byte)C.Length;
+                Array.Copy(C, 0, rv, VB.Length + 1, C.Length);
+
+                return rv;
+            }
+
+            #endregion
+
+            public override void Encode(BcpgOutputStream pOut)
             {
                 PublicKeyEncSessionPacket pk = new PublicKeyEncSessionPacket(
                     pubKey.KeyId, pubKey.Algorithm, data);

@@ -89,6 +89,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     ElGamalPrivateKeyParameters esK = (ElGamalPrivateKeyParameters)privKey.Key;
                     secKey = new ElGamalSecretBcpgKey(esK.X);
                     break;
+                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.ECDsa:
+                    ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
+                    secKey = new ECSecretBCPGKey(ecK.D);
+                    break;
                 default:
                     throw new PgpException("unknown key class");
             }
@@ -217,7 +222,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         #endregion
 
         //Now has a digest parameter that is sha1 by default, but other can be used now.
-        private static PgpPublicKey CertifiedPublicKey(
+        internal static PgpPublicKey CertifiedPublicKey(
             int certificationLevel,
             PgpKeyPair keyPair,
             string id,
@@ -292,7 +297,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignatureSubpacketVector hashedPackets,
             PgpSignatureSubpacketVector unhashedPackets,
             SecureRandom rand)
-            : this(certificationLevel, new PgpKeyPair(algorithm, pubKey, privKey, time), id, encAlgorithm, passPhrase, useSha1, hashedPackets, unhashedPackets, rand)
+            : this(certificationLevel, 
+            new PgpKeyPair(algorithm, pubKey, privKey, time),
+            id, 
+            encAlgorithm, 
+            passPhrase, 
+            useSha1, 
+            hashedPackets, 
+            unhashedPackets, 
+            rand)
         {
         }
 
@@ -568,11 +581,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         ElGamalParameters elParams = new ElGamalParameters(elPub.P, elPub.G);
                         privateKey = new ElGamalPrivateKeyParameters(elPriv.X, elParams);
                         break;
+                    case PublicKeyAlgorithmTag.ECDH:
+                        EcPublicBcpgKey ecdhPub = (EcPublicBcpgKey)pubPk.Key;
+                        ECSecretBCPGKey ecdhPriv = new ECSecretBCPGKey(bcpgIn);
+                        privateKey = new ECPrivateKeyParameters("ECDH", ecdhPriv.X, ecdhPub.CurveOid);
+                        break;
+                    case PublicKeyAlgorithmTag.ECDsa:
+                        EcPublicBcpgKey ecPub = (EcPublicBcpgKey)pubPk.Key;
+                        ECSecretBCPGKey ecPriv = new ECSecretBCPGKey(bcpgIn);
+                        privateKey = new ECPrivateKeyParameters("ECDSA", ecPriv.X, ecPub.CurveOid);
+                        break;
                     default:
                         throw new PgpException("unknown public key algorithm encountered");
                 }
 
-                return new PgpPrivateKey(privateKey, KeyId);
+                return new PgpPrivateKey(privateKey, KeyId, pubPk);
             }
             catch (PgpException e)
             {
