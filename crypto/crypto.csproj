@@ -10145,6 +10145,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\tls\TlsEccUtilities.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\tls\TlsECDheKeyExchange.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -15594,6 +15599,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\io\test\CipherStreamTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "test\src\crypto\test\AeadTestUtilities.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
