@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 #################
 ## Eclipse
 #################
@@ -234,3 +235,17 @@ crypto/obj/Debug/crypto.csproj.FileListAbsolute.txt
 crypto/obj/Debug/crypto.csprojResolveAssemblyReference.cache
 crypto/obj/Debug/crypto.dll
 crypto/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+=======
+*.psess
+*.snk
+*.suo
+*.swp
+*.user
+*.vsp
+
+Backup/
+bin/
+dist/
+doc/
+obj/
+>>>>>>> upstream/master
