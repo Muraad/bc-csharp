@@ -39,13 +39,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             BcpgInputStream bcpgInput = BcpgInputStream.Wrap(inputStream);
 
 			PacketTag initialTag = bcpgInput.NextPacketTag();
+            /*while (initialTag != PacketTag.PublicKey && initialTag != PacketTag.PublicSubkey)
+            {
+                Console.WriteLine("PacketTag: " + Enum.GetName(typeof(PacketTag), initialTag));
+                bcpgInput.ReadPacket();
+                initialTag = bcpgInput.NextPacketTag();
+            }*/
+
             if (initialTag != PacketTag.PublicKey && initialTag != PacketTag.PublicSubkey)
             {
                 throw new IOException("public key ring doesn't start with public key tag: "
 					+ "tag 0x" + ((int)initialTag).ToString("X"));
             }
 
-			PublicKeyPacket pubPk = (PublicKeyPacket) bcpgInput.ReadPacket();;
+			PublicKeyPacket pubPk = (PublicKeyPacket) bcpgInput.ReadPacket();
 			TrustPacket trustPk = ReadOptionalTrustPacket(bcpgInput);
 
             // direct signatures and revocations

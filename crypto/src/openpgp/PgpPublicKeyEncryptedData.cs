@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public Stream GetDataStream(PgpPrivateKey privKey, HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
             byte[] plain = null;
-            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
+            if (keyData.Algorithm == PublicKeyAlgorithmTag.EC)
                 plain = decryptSessionData(privKey);
 			else 
                 plain = fetchSymmetricKeyData(privKey);
@@ -242,7 +242,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             ECPrivateKeyParameters keyParams = (ECPrivateKeyParameters)privateKey.Key;
 
             EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)privateKey.PublicKeyPacket.Key;
-            X9ECParameters x9Params = NistNamedCurves.GetByOid(ecKey.CurveOid);
+            X9ECParameters x9Params = ECNamedCurveTable.GetByOid(ecKey.CurveOid);
             ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
 
             byte[] enc = keyData.GetEncSessionKey()[0].ToByteArrayUnsigned();
@@ -261,6 +261,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             ECPoint S = x9Params.Curve.DecodePoint(pEnc).Multiply(keyParams.D).Normalize();
 
             IDigest digest = DigestUtilities.GetDigest(PgpUtilities.GetDigestName((HashAlgorithmTag)ecKey.HashAlgorithm));
+
             RFC6637KDFCalculator rfc6637KDFCalculator = new RFC6637KDFCalculator(digest, ecKey.SymmetricKeyAlgorithm);
 
             byte[] keyBytes = rfc6637KDFCalculator.CreateKey(ecKey.CurveOid, S, getFingerprint(privateKey.PublicKeyPacket));

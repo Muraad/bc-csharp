@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 				Fail("RSA: failed - exception " + e.ToString(), e);
 			}
 
-			eng = new Pkcs1Encoding(eng);
+			eng = new Pkcs1Encoding (eng);
 
 			eng.Init(false, pubParameters);
 

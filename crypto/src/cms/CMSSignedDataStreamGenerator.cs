@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Cms
     *
     *      Stream sigOut = gen.Open(bOut);
     *
-    *      sigOut.Write(Encoding.UTF8.GetBytes("Hello World!"));
+    *      sigOut.Write(Encoding.UTF8.GetBytes("Hello NCore!"));
     *
     *      sigOut.Close();
     * </pre>

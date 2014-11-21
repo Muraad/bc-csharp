@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Bcpg
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     key = new ElGamalPublicBcpgKey(bcpgIn);
                     break;
-                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.EC:
                     key = new EcdhPublicBcpgKey(bcpgIn);
                     break;
                 case PublicKeyAlgorithmTag.ECDsa:

@@ -152,7 +152,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 ECPublicKeyParameters eK = (ECPublicKeyParameters)pubKey;
 
-                if (algorithm == PublicKeyAlgorithmTag.ECDH)
+                if (algorithm == PublicKeyAlgorithmTag.EC)
                 {
                     // TODO: KDF parameters
                     bcpgKey = new EcdhPublicBcpgKey(eK.PublicKeyParamSet, eK.Q, HashAlgorithmTag.Sha512, SymmetricKeyAlgorithmTag.Aes256);
@@ -392,7 +392,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					case PublicKeyAlgorithmTag.ElGamalGeneral:
 					case PublicKeyAlgorithmTag.RsaEncrypt:
 					case PublicKeyAlgorithmTag.RsaGeneral:
-                    case PublicKeyAlgorithmTag.ECDH:
+                    case PublicKeyAlgorithmTag.EC:
 						return true;
 					default:
 						return false;
@@ -439,7 +439,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey) publicPk.Key;
                         return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
-                    case PublicKeyAlgorithmTag.ECDH:
+                    case PublicKeyAlgorithmTag.EC:
                         EcdhPublicBcpgKey ecdhK = (EcdhPublicBcpgKey)publicPk.Key;
                         return new ECPublicKeyParameters("ECDH", ecdhK.Point, ecdhK.CurveOid);
                     case PublicKeyAlgorithmTag.ECDsa:

@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Bcpg
 						new MPInteger(bcpgIn).Value
 					};
 					break;
-                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.EC:
                     data = new BigInteger[]{new MPInteger(bcpgIn).Value};
                     break;
 				default:

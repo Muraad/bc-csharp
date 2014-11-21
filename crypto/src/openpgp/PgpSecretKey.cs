@@ -89,7 +89,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     ElGamalPrivateKeyParameters esK = (ElGamalPrivateKeyParameters)privKey.Key;
                     secKey = new ElGamalSecretBcpgKey(esK.X);
                     break;
-                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.EC:
                 case PublicKeyAlgorithmTag.ECDsa:
                     ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
                     secKey = new ECSecretBCPGKey(ecK.D);
@@ -581,7 +581,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         ElGamalParameters elParams = new ElGamalParameters(elPub.P, elPub.G);
                         privateKey = new ElGamalPrivateKeyParameters(elPriv.X, elParams);
                         break;
-                    case PublicKeyAlgorithmTag.ECDH:
+                    case PublicKeyAlgorithmTag.EC:
                         EcPublicBcpgKey ecdhPub = (EcPublicBcpgKey)pubPk.Key;
                         ECSecretBCPGKey ecdhPriv = new ECSecretBCPGKey(bcpgIn);
                         privateKey = new ECPrivateKeyParameters("ECDH", ecdhPriv.X, ecdhPub.CurveOid);

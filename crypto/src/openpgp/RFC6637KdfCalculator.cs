@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] encOid = curveOID.GetEncoded();
 
                 pOut.Write(encOid, 1, encOid.Length - 1);
-                pOut.WriteByte((byte)PublicKeyAlgorithmTag.ECDH);
+                pOut.WriteByte((byte)PublicKeyAlgorithmTag.EC);
                 pOut.WriteByte(0x03);
                 pOut.WriteByte(0x01);
                 //Org.BouncyCastle.Security.DigestUtilities.GetObjectIdentifier(digCalc.AlgorithmName).Encode(pOut);

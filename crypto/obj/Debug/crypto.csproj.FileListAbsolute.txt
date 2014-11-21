@@ -1,9 +1,0 @@
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\bin\Debug\crypto.dll
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\bin\Debug\crypto.pdb
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\bin\Debug\crypto.xml
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\bin\Debug\nunit.core.dll
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\bin\Debug\nunit.core.interfaces.dll
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\bin\Debug\nunit.framework.dll
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\obj\Debug\crypto.dll
-C:\Users\muraad\Documents\GitHub\bc-csharp\crypto\obj\Debug\crypto.pdb
-C:\Users\Muraad\Documents\GitHub\bc-csharp\crypto\obj\Debug\crypto.csprojResolveAssemblyReference.cache
