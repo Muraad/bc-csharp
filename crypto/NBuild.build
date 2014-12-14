@@ -16,7 +16,7 @@
   <property name="dist-path" value="./dist"/>
 
   <!-- Version -->
-  <property name="version" value="1.8.0-beta.4"/>
+  <property name="version" value="1.8.0-beta.5"/>
   <property name="name" value="BouncyCastle.Crypto"/>
 
   <property name="OPTIONAL_STRONG_NAME" value="" />
@@ -170,6 +170,7 @@
       <resources prefix="crypto" dynamicprefix="true">
         <include name="${test-datapath}/**/*.*"/>
         <exclude name="${test-datapath}/**/README.txt"/>
+        <exclude name="${test-datapath}/tls/*.tmpl"/>
       </resources>
       <references>
         <include name="mscorlib.dll"/>
