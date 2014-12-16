@@ -67,13 +67,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             else
             {
                 byte[] kBytes = publicPk.GetEncodedContents();
-<<<<<<< HEAD
-                
-				try
-=======
 
-                try
->>>>>>> d8a15d373541f25a0b454f401de8b23a4ab76c43
+				try
                 {
                     IDigest digest = DigestUtilities.GetDigest("SHA1");
 
@@ -391,7 +386,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             get
             {
-<<<<<<< HEAD
 				switch (publicPk.Algorithm)
 				{
 					case PublicKeyAlgorithmTag.ElGamalEncrypt:
@@ -403,7 +397,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 					default:
 						return false;
 				}
-=======
+/*
                 switch (publicPk.Algorithm)
                 {
                     case PublicKeyAlgorithmTag.ECDH:
@@ -414,8 +408,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         return true;
                     default:
                         return false;
-                }
->>>>>>> d8a15d373541f25a0b454f401de8b23a4ab76c43
+                }*/
             }
         }
 

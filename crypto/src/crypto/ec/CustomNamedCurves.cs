@@ -299,7 +299,7 @@ namespace Org.BouncyCastle.Crypto.EC
 
         static CustomNamedCurves()
         {
-            DefineCurve("curve25519", Curve25519Holder.Instance);
+            DefineCurve("curve25519", new DerObjectIdentifier("1.3.6.1.4.1.3029.1.5.1"), Curve25519Holder.Instance);
 
             DefineCurve("secp192k1", SecObjectIdentifiers.SecP192k1, Secp192k1Holder.Instance);
             DefineCurve("secp192r1", SecObjectIdentifiers.SecP192r1, Secp192r1Holder.Instance);

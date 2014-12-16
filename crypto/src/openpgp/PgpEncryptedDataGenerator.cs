@@ -15,6 +15,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Bcpg;
+using Org.BouncyCastle.Crypto.EC;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -101,7 +102,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] encKey = null;
                 if (pubKey.Algorithm == PublicKeyAlgorithmTag.EC)
                 {
-                    encKey = addECDHSessionInfo(pubKey, si, random);
+                    encKey = AddECDHSessionInfo(pubKey, si, random);
                 }
                 else
                 {
@@ -158,7 +159,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             #region AddSessionInfo private Helper padSessionData and addECDHSessionInfo
 
-            private byte[] padSessionData(byte[] sessionInfo)
+            private byte[] PadSessionData(byte[] sessionInfo)
             {
                 byte[] result = new byte[40];
 
@@ -174,13 +175,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 return result;
             }
 
-            private byte[] addECDHSessionInfo(
+            private byte[] AddECDHSessionInfo(
                 PgpPublicKey pubKey,
                 byte[] si,
                 SecureRandom random)
             {
                 EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)pubKey.publicPk.Key;
                 X9ECParameters x9Params = ECNamedCurveTable.GetByOid(ecKey.CurveOid);
+                if (x9Params == null)
+                    x9Params = CustomNamedCurves.GetByOid(ecKey.CurveOid);
+
                 ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
 
                 ECKeyPairGenerator gen = new ECKeyPairGenerator();
@@ -206,7 +210,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 wrapper.Init(true, keyEncryptionKey);
                 byte[] encryptedKeyBytes = wrapper.Wrap(keyBytes, 0, keyBytes.Length);
 
-                byte[] paddedSessionData = padSessionData(si);
+                byte[] paddedSessionData = PadSessionData(si);
 
                 byte[] C = wrapper.Wrap(paddedSessionData, 0, paddedSessionData.Length);
 

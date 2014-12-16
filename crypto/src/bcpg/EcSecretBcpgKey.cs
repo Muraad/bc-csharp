@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Bcpg
 
                 return bOut.ToArray();
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 return null;
             }

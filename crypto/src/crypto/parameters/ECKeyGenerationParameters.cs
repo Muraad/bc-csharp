@@ -12,6 +12,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly ECDomainParameters domainParams;
 		private readonly DerObjectIdentifier publicKeyParamSet;
 
+        public ECKeyGenerationParameters(
+            DerObjectIdentifier publicKeyParamSet,
+            ECDomainParameters domainParameters,
+            SecureRandom random)
+            : base(random, domainParameters.N.BitLength)
+        {
+            this.publicKeyParamSet = publicKeyParamSet;
+            this.domainParams = domainParameters;
+        }
+
 		public ECKeyGenerationParameters(
 			ECDomainParameters	domainParameters,
 			SecureRandom		random)

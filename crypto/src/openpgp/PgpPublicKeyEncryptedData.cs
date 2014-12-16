@@ -11,6 +11,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Bcpg;
+using Org.BouncyCastle.Crypto.EC;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -81,7 +82,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		public SymmetricKeyAlgorithmTag GetSymmetricAlgorithm(
 			PgpPrivateKey privKey)
 		{
-			byte[] plain = fetchSymmetricKeyData(privKey);
+			byte[] plain = FetchSymmetricKeyData(privKey);
 
 			return (SymmetricKeyAlgorithmTag) plain[0];
 		}
@@ -91,9 +92,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             byte[] plain = null;
             if (keyData.Algorithm == PublicKeyAlgorithmTag.EC)
-                plain = decryptSessionData(privKey);
+                plain = DecryptSessionData(privKey);
 			else 
-                plain = fetchSymmetricKeyData(privKey);
+                plain = FetchSymmetricKeyData(privKey);
 
 			IBufferedCipher c2;
 			string cipherName = PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag) plain[0]);
@@ -237,12 +238,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return fingerprint;
         }
 
-        private byte[] decryptSessionData(PgpPrivateKey privateKey)
+        private byte[] DecryptSessionData(PgpPrivateKey privateKey)
         {
             ECPrivateKeyParameters keyParams = (ECPrivateKeyParameters)privateKey.Key;
 
             EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)privateKey.PublicKeyPacket.Key;
             X9ECParameters x9Params = ECNamedCurveTable.GetByOid(ecKey.CurveOid);
+            if (x9Params == null)
+                x9Params = CustomNamedCurves.GetByOid(ecKey.CurveOid);
+
             ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
 
             byte[] enc = keyData.GetEncSessionKey()[0].ToByteArrayUnsigned();
@@ -276,7 +280,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 c.Init(false, keyEncryptionKey);
                 byte[] paddedSessionKey = c.Unwrap(keyEnc, 0, keyEnc.Length);
 
-                return unpadSessionData(paddedSessionKey);
+                return UnpadSessionData(paddedSessionKey);
             }
             catch (InvalidKeyException e)
             {
@@ -284,7 +288,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-        private byte[] unpadSessionData(byte[] encoded)
+        private byte[] UnpadSessionData(byte[] encoded)
         {
             byte padValue = encoded[encoded.Length - 1];
 
@@ -302,7 +306,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return taggedKey;
         }
 
-		private byte[] fetchSymmetricKeyData(
+		private byte[] FetchSymmetricKeyData(
 			PgpPrivateKey privKey)
 		{
 			IBufferedCipher c1 = GetKeyCipher(keyData.Algorithm);
