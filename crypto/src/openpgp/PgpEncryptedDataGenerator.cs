@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 IBufferedCipher c;
                 byte[] encKey = null;
-                if (pubKey.Algorithm == PublicKeyAlgorithmTag.EC)
+                if (pubKey.Algorithm == PublicKeyAlgorithmTag.ECDH)
                 {
                     encKey = AddECDHSessionInfo(pubKey, si, random);
                 }
@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         case PublicKeyAlgorithmTag.ElGamalGeneral:
                             c = CipherUtilities.GetCipher("ElGamal/ECB/PKCS1Padding");
                             break;
-                        case PublicKeyAlgorithmTag.EC:
+                        case PublicKeyAlgorithmTag.ECDH:
                             c = CipherUtilities.GetCipher("ECIES");
                             break;
                         case PublicKeyAlgorithmTag.Dsa:
@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 							new BigInteger(1, encKey, halfLength, halfLength)
 						};
                         break;
-                    case PublicKeyAlgorithmTag.EC:
+                    case PublicKeyAlgorithmTag.ECDH:
                         data = new BigInteger[] { new BigInteger(1, encKey) };
                         break;
                     default:
@@ -187,6 +187,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
 
+                // Generate the ephemeral key pair
                 ECKeyPairGenerator gen = new ECKeyPairGenerator();
                 gen.Init(new ECKeyGenerationParameters(ecParams, random));
 

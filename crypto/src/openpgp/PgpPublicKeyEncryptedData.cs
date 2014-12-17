@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public Stream GetDataStream(PgpPrivateKey privKey, HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
             byte[] plain = null;
-            if (keyData.Algorithm == PublicKeyAlgorithmTag.EC)
+            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
                 plain = DecryptSessionData(privKey);
 			else 
                 plain = FetchSymmetricKeyData(privKey);

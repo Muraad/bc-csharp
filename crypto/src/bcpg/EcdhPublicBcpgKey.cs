@@ -39,14 +39,47 @@ namespace Org.BouncyCastle.Bcpg
             verifySymmetricKeyAlgorithm();
         }
 
+        /// <summary>
+        /// Get the recommended hash algorithm according to RFC6637 - 13. Security Considerations
+        /// </summary>
+        /// <param name="oid">The curve object identifier.</param>
+        /// <returns>The hash algorithm tag (default is SHA 512).</returns>
+        public static HashAlgorithmTag HashAlgoritmByCurveOid(DerObjectIdentifier oid)
+        {
+            HashAlgorithmTag hashAlgo = HashAlgorithmTag.Sha512;
+
+            if (oid.On(Asn1.X9.X9ObjectIdentifiers.PrimeCurve))
+                hashAlgo = HashAlgorithmTag.Sha256;
+            else if (oid == Asn1.Sec.SecObjectIdentifiers.SecP384r1)
+                hashAlgo = HashAlgorithmTag.Sha384;
+
+            return hashAlgo;
+        }
+
+        /// <summary>
+        /// Get the recommended symmetric key algorithm according to RFC6637 - 13. Security Considerations
+        /// </summary>
+        /// <param name="oid">The curve object identifier.</param>
+        /// <returns>The symmetric key algorithm tag  (default is AES 256).</returns>
+        public static SymmetricKeyAlgorithmTag SymmetricKeyAlgorithmByCurveOid(DerObjectIdentifier oid)
+        {
+            SymmetricKeyAlgorithmTag symmAlgo = SymmetricKeyAlgorithmTag.Aes256;
+
+            if (oid.On(Asn1.X9.X9ObjectIdentifiers.PrimeCurve))
+                symmAlgo = SymmetricKeyAlgorithmTag.Aes128;
+            else if (oid == Asn1.Sec.SecObjectIdentifiers.SecP384r1)
+                symmAlgo = SymmetricKeyAlgorithmTag.Aes192;
+            return symmAlgo;
+        }
+
         public EcdhPublicBcpgKey(
             DerObjectIdentifier oid,
             ECPoint point,
-            HashAlgorithmTag hashAlgorithm,
-            SymmetricKeyAlgorithmTag symmetricKeyAlgorithm) : base(oid, point)
+            HashAlgorithmTag hashAlgorithm = HashAlgorithmTag.Sha512,
+            SymmetricKeyAlgorithmTag symmetricKeyAlgorithm = SymmetricKeyAlgorithmTag.Aes256) : base(oid, point)
         {
-
             reserved = 1;
+
             hashFunctionId = (byte)hashAlgorithm;
             symAlgorithmId = (byte)symmetricKeyAlgorithm;
 

@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				case PublicKeyAlgorithmTag.ElGamalGeneral:
 					encAlg = "ElGamal";
 					break;
-                case PublicKeyAlgorithmTag.EC:
+                case PublicKeyAlgorithmTag.ECDH:
                 case PublicKeyAlgorithmTag.ECDsa:
                     encAlg = "ECDSA";
                     break;

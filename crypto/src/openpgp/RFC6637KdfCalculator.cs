@@ -15,11 +15,39 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         
         private IDigest digCalc;
         private int keyAlgorithm;
+        private int digestAlgorithm;
+
+        public static HashAlgorithmTag GetHashAlgorithmTag(string hashAlgorithmName)
+        {
+            hashAlgorithmName = hashAlgorithmName.Replace("-", "");
+            switch (hashAlgorithmName)
+            {
+                case "SHA1":
+                    return HashAlgorithmTag.Sha1;
+                case "MD2":
+                    return HashAlgorithmTag.MD2;
+                case "MD5":
+                    return HashAlgorithmTag.MD5;
+                case "RIPEMD160":
+                    return HashAlgorithmTag.RipeMD160;
+                case "SHA224":
+                    return HashAlgorithmTag.Sha224;
+                case "SHA256":
+                    return HashAlgorithmTag.Sha256;
+                case "SHA384":
+                    return HashAlgorithmTag.Sha384;
+                case "SHA512":
+                    return HashAlgorithmTag.Sha512;
+                default:
+                    throw new PgpException("unknown hash algorithm name in GetHashAlgorithmTag " + hashAlgorithmName);
+            }
+        }
 
         public RFC6637KDFCalculator(IDigest digCalc, int keyAlgorithm)
         {
             this.digCalc = digCalc;
             this.keyAlgorithm = keyAlgorithm;
+            this.digestAlgorithm = (int)GetHashAlgorithmTag(digCalc.AlgorithmName);
         }
 
         public byte[] CreateKey(DerObjectIdentifier curveOID,  ECPoint s, byte[] recipientFingerPrint)
@@ -38,10 +66,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] encOid = curveOID.GetEncoded();
 
                 pOut.Write(encOid, 1, encOid.Length - 1);
-                pOut.WriteByte((byte)PublicKeyAlgorithmTag.EC);
+                pOut.WriteByte((byte)PublicKeyAlgorithmTag.ECDH);
                 pOut.WriteByte(0x03);
                 pOut.WriteByte(0x01);
-                //Org.BouncyCastle.Security.DigestUtilities.GetObjectIdentifier(digCalc.AlgorithmName).Encode(pOut);
+                pOut.WriteByte((byte)digestAlgorithm);
                 pOut.WriteByte((byte)keyAlgorithm);
                 pOut.Write(ANONYMOUS_SENDER, 0, ANONYMOUS_SENDER.Length);
                 pOut.Write(recipientFingerPrint, 0, recipientFingerPrint.Length);
