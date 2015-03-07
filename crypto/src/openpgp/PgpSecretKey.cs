@@ -454,20 +454,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     else
                         check = Checksum(false, data, data.Length - 2);
 
-                    /*Console.WriteLine("--------------------------------------------------------------");
-                    Console.WriteLine("Checksum: ");
-                    foreach (byte ch in check)
-                        Console.Write(ch);
-                    Console.WriteLine("\nData: " + data);
-                    foreach (byte d in data)
-                        Console.Write(d);
-                    Console.WriteLine("--------------------------------------------------------------");*/
-
                     for (int i = 0; i != check.Length; i++)
                     {
                         if (check[i] != data[data.Length - check.Length + i])
                         {
-
                             throw new PgpException("Checksum mismatch at " + i + " of " + check.Length);
                         }
                     }

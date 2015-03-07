@@ -274,7 +274,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag)ecKey.SymmetricKeyAlgorithm),
                 keyBytes);
 
-
             try
             {
                 c.Init(false, keyEncryptionKey);
