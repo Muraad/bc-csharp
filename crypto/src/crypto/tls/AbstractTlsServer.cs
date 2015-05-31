@@ -140,7 +140,11 @@ namespace Org.BouncyCastle.Crypto.Tls
             if (clientExtensions != null)
             {
                 this.mEncryptThenMacOffered = TlsExtensionsUtilities.HasEncryptThenMacExtension(clientExtensions);
+
                 this.mMaxFragmentLengthOffered = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions);
+                if (mMaxFragmentLengthOffered >= 0 && !MaxFragmentLength.IsValid((byte)mMaxFragmentLengthOffered))
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
                 this.mTruncatedHMacOffered = TlsExtensionsUtilities.HasTruncatedHMacExtension(clientExtensions);
 
                 this.mSupportedSignatureAlgorithms = TlsUtilities.GetSignatureAlgorithmsExtension(clientExtensions);
@@ -161,9 +165,13 @@ namespace Org.BouncyCastle.Crypto.Tls
             /*
              * RFC 4429 4. The client MUST NOT include these extensions in the ClientHello message if it
              * does not propose any ECC cipher suites.
+             * 
+             * NOTE: This was overly strict as there may be ECC cipher suites that we don't recognize.
+             * Also, draft-ietf-tls-negotiated-ff-dhe will be overloading the 'elliptic_curves'
+             * extension to explicitly allow FFDHE (i.e. non-ECC) groups.
              */
-            if (!this.mEccCipherSuitesOffered && (this.mNamedCurves != null || this.mClientECPointFormats != null))
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            //if (!this.mEccCipherSuitesOffered && (this.mNamedCurves != null || this.mClientECPointFormats != null))
+            //    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
         }
 
         public virtual ProtocolVersion GetServerVersion()
@@ -318,6 +326,14 @@ namespace Org.BouncyCastle.Crypto.Tls
                  */
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
+        }
+
+        public override TlsCipher GetCipher()
+        {
+            int encryptionAlgorithm = TlsUtilities.GetEncryptionAlgorithm(mSelectedCipherSuite);
+            int macAlgorithm = TlsUtilities.GetMacAlgorithm(mSelectedCipherSuite);
+
+            return mCipherFactory.CreateCipher(mContext, encryptionAlgorithm, macAlgorithm);
         }
 
         public virtual NewSessionTicket GetNewSessionTicket()
