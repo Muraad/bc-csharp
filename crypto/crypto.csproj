@@ -21,25 +21,11 @@
     <StartupObject />
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>0.0</OldToolsVersion>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>bin\Debug\</OutputPath>
@@ -60,6 +46,7 @@
     <WarningLevel>4</WarningLevel>
     <DebugType>full</DebugType>
     <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -80,6 +67,7 @@
     <WarningLevel>4</WarningLevel>
     <DebugType>none</DebugType>
     <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.core">
@@ -1425,10 +1413,6 @@
     <Compile Include="src\bcpg\DSASecretBCPGKey.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\bcpg\EcdhPublicBcpgKey.cs" />
-    <Compile Include="src\bcpg\EcdsaPublicBcpgKey.cs" />
-    <Compile Include="src\bcpg\EcPublicBcpgKey.cs" />
-    <Compile Include="src\bcpg\EcSecretBcpgKey.cs" />
     <Compile Include="src\bcpg\ElGamalPublicBCPGKey.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2641,6 +2625,9 @@
     <Compile Include="src\crypto\tls\AlertLevel.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\crypto\tls\BasicTlsPskIdentity.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\tls\BulkCipherAlgorithm.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2827,6 +2814,9 @@
     <Compile Include="src\crypto\tls\PskTlsClient.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="src\crypto\tls\PskTlsServer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="src\crypto\tls\RecordStream.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -2975,6 +2965,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\tls\TlsPskIdentity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\crypto\tls\TlsPskIdentityManager.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\crypto\tls\TlsPskKeyExchange.cs">
@@ -3472,7 +3465,6 @@
     <Compile Include="src\openpgp\PGPV3SignatureGenerator.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="src\openpgp\RFC6637KdfCalculator.cs" />
     <Compile Include="src\openpgp\WrappedGeneratorStream.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -5846,21 +5838,6 @@
     <None Include="test\data\PKITS\README.txt" />
     <None Include="test\data\rfc4134\rfc4134.txt" />
     <None Include="test\data\rsa3\testcases.README" />
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
