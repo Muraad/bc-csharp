@@ -242,7 +242,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             ECPrivateKeyParameters keyParams = (ECPrivateKeyParameters)privateKey.Key;
 
-            EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)privateKey.PublicKeyPacket.Key;
+            ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)privateKey.PublicKeyPacket.Key;
             X9ECParameters x9Params = ECNamedCurveTable.GetByOid(ecKey.CurveOid);
             if (x9Params == null)
                 x9Params = CustomNamedCurves.GetByOid(ecKey.CurveOid);

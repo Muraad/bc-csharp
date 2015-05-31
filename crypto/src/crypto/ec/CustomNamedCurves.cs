@@ -741,7 +741,7 @@ namespace Org.BouncyCastle.Crypto.EC
 
         static CustomNamedCurves()
         {
-            DefineCurve("curve25519", new DerObjectIdentifier("1.3.6.1.4.1.3029.1.5.1"), Curve25519Holder.Instance);
+            DefineCurveWithOid("curve25519", new DerObjectIdentifier("1.3.6.1.4.1.3029.1.5.1"), Curve25519Holder.Instance);
 
             //DefineCurveWithOid("secp112r1", SecObjectIdentifiers.SecP112r1, SecP112R1Holder.Instance);
             //DefineCurveWithOid("secp112r2", SecObjectIdentifiers.SecP112r2, SecP112R2Holder.Instance);

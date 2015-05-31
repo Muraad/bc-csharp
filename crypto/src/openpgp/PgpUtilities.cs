@@ -494,5 +494,54 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				return new ArmoredInputStream(inputStream, hasHeaders);
             }
         }
+
+
+        public static Math.EC.ECPoint DecodePoint(ECPublicBcpgKey pubKey)
+        {
+            X9ECParameters x9Params = ECKeyPairGenerator.FindECCurveByOid(pubKey.CurveOid);
+            return x9Params.Curve.DecodePoint(pubKey.EncodedPoint.ToByteArrayUnsigned());
+        }
+
+        public static Math.EC.ECPoint DecodePoint(BigInteger encodedPoint, DerObjectIdentifier curveOid)
+        {
+
+            X9ECParameters x9Params = ECNamedCurveTable.GetByOid(curveOid);
+            if (x9Params == null)
+                x9Params = Crypto.EC.CustomNamedCurves.GetByOid(curveOid);
+            return x9Params.Curve.DecodePoint(encodedPoint.ToByteArrayUnsigned());
+        }
+
+        /// <summary>
+        /// Get the recommended hash algorithm according to RFC6637 - 13. Security Considerations
+        /// </summary>
+        /// <param name="oid">The curve object identifier.</param>
+        /// <returns>The hash algorithm tag (default is SHA 512).</returns>
+        public static HashAlgorithmTag HashAlgoritmByCurveOid(DerObjectIdentifier oid)
+        {
+            HashAlgorithmTag hashAlgo = HashAlgorithmTag.Sha512;
+
+            if (oid.On(Asn1.X9.X9ObjectIdentifiers.PrimeCurve))
+                hashAlgo = HashAlgorithmTag.Sha256;
+            else if (oid == Asn1.Sec.SecObjectIdentifiers.SecP384r1)
+                hashAlgo = HashAlgorithmTag.Sha384;
+
+            return hashAlgo;
+        }
+
+        /// <summary>
+        /// Get the recommended symmetric key algorithm according to RFC6637 - 13. Security Considerations
+        /// </summary>
+        /// <param name="oid">The curve object identifier.</param>
+        /// <returns>The symmetric key algorithm tag  (default is AES 256).</returns>
+        public static SymmetricKeyAlgorithmTag SymmetricKeyAlgorithmByCurveOid(DerObjectIdentifier oid)
+        {
+            SymmetricKeyAlgorithmTag symmAlgo = SymmetricKeyAlgorithmTag.Aes256;
+
+            if (oid.On(Asn1.X9.X9ObjectIdentifiers.PrimeCurve))
+                symmAlgo = SymmetricKeyAlgorithmTag.Aes128;
+            else if (oid == Asn1.Sec.SecObjectIdentifiers.SecP384r1)
+                symmAlgo = SymmetricKeyAlgorithmTag.Aes192;
+            return symmAlgo;
+        }
     }
 }

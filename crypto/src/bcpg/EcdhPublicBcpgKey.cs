@@ -77,12 +77,12 @@ namespace Org.BouncyCastle.Bcpg
         {
             switch ((HashAlgorithmTag)hashFunctionId)
             {
-            case HashAlgorithmTag.Sha256:
-            case HashAlgorithmTag.Sha384:
-            case HashAlgorithmTag.Sha512:
-                break;
-            default:
-                throw new InvalidOperationException("Hash algorithm must be SHA-256 or stronger.");
+                case HashAlgorithmTag.Sha256:
+                case HashAlgorithmTag.Sha384:
+                case HashAlgorithmTag.Sha512:
+                    break;
+                default:
+                    throw new InvalidOperationException("Hash algorithm must be SHA-256 or stronger.");
             }
         }
 
@@ -90,12 +90,12 @@ namespace Org.BouncyCastle.Bcpg
         {
             switch ((SymmetricKeyAlgorithmTag)symAlgorithmId)
             {
-            case SymmetricKeyAlgorithmTag.Aes128:
-            case SymmetricKeyAlgorithmTag.Aes192:
-            case SymmetricKeyAlgorithmTag.Aes256:
-                break;
-            default:
-                throw new InvalidOperationException("Symmetric key algorithm must be AES-128 or stronger.");
+                case SymmetricKeyAlgorithmTag.Aes128:
+                case SymmetricKeyAlgorithmTag.Aes192:
+                case SymmetricKeyAlgorithmTag.Aes256:
+                    break;
+                default:
+                    throw new InvalidOperationException("Symmetric key algorithm must be AES-128 or stronger.");
             }
         }
     }

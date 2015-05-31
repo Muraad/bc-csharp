@@ -180,10 +180,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 byte[] si,
                 SecureRandom random)
             {
-                EcdhPublicBcpgKey ecKey = (EcdhPublicBcpgKey)pubKey.publicPk.Key;
-                X9ECParameters x9Params = ECNamedCurveTable.GetByOid(ecKey.CurveOid);
-                if (x9Params == null)
-                    x9Params = CustomNamedCurves.GetByOid(ecKey.CurveOid);
+                ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)pubKey.publicPk.Key;
+                X9ECParameters x9Params = ECKeyPairGenerator.FindECCurveByOid(ecKey.CurveOid);
 
                 ECDomainParameters ecParams = new ECDomainParameters(x9Params.Curve, x9Params.G, x9Params.N);
 
@@ -197,12 +195,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 ECPrivateKeyParameters ephPriv = (ECPrivateKeyParameters)keyPair.Private;
 
-                ECPoint S = ecKey.Point.Multiply(ephPriv.D).Normalize();
+                ECPoint S = PgpUtilities.DecodePoint(ecKey.EncodedPoint, ecKey.CurveOid).Multiply(ephPriv.D).Normalize();
 
                 IDigest digest = DigestUtilities.GetDigest(PgpUtilities.GetDigestName((HashAlgorithmTag)ecKey.HashAlgorithm));
                 RFC6637KDFCalculator rfc6637KDFCalculator = new RFC6637KDFCalculator(digest, ecKey.SymmetricKeyAlgorithm);
                 byte[] keyBytes = rfc6637KDFCalculator.CreateKey(ecKey.CurveOid, S, pubKey.GetFingerprint());
-
                 KeyParameter keyEncryptionKey = ParameterUtilities.CreateKeyParameter(
                     PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag)ecKey.SymmetricKeyAlgorithm),
                     keyBytes);

@@ -107,7 +107,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
                 else if (key is ECPublicBcpgKey)
                 {
-                    this.keyStrength = ECNamedCurveTable.GetByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
+                    this.keyStrength = Crypto.Generators.ECKeyPairGenerator.FindECCurveByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
+                    //this.keyStrength = ECNamedCurveTable.GetByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
                 }
             }
         }
@@ -159,14 +160,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 if (algorithm == PublicKeyAlgorithmTag.ECDH)
                 {
-                    HashAlgorithmTag ecdhHashAlgo = EcdhPublicBcpgKey.HashAlgoritmByCurveOid(eK.PublicKeyParamSet);
-                    SymmetricKeyAlgorithmTag ecdhSymmAlgo = EcdhPublicBcpgKey.SymmetricKeyAlgorithmByCurveOid(eK.PublicKeyParamSet);
+                    HashAlgorithmTag ecdhHashAlgo = PgpUtilities.HashAlgoritmByCurveOid(eK.PublicKeyParamSet);
+                    SymmetricKeyAlgorithmTag ecdhSymmAlgo = PgpUtilities.SymmetricKeyAlgorithmByCurveOid(eK.PublicKeyParamSet);
 
-                    bcpgKey = new EcdhPublicBcpgKey(eK.PublicKeyParamSet, eK.Q, ecdhHashAlgo, ecdhSymmAlgo);
+                    bcpgKey = new ECDHPublicBcpgKey(eK.PublicKeyParamSet, eK.Q, (int)ecdhHashAlgo, (int)ecdhSymmAlgo);
                 }
                 else
                 {
-                    bcpgKey = new EcdsaPublicBcpgKey(eK.PublicKeyParamSet, eK.Q);
+                    bcpgKey = new ECDsaPublicBcpgKey(eK.PublicKeyParamSet, eK.Q);
                 }
             }
             else
@@ -452,11 +453,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey) publicPk.Key;
                         return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
                     case PublicKeyAlgorithmTag.ECDH:
-                        EcdhPublicBcpgKey ecdhK = (EcdhPublicBcpgKey)publicPk.Key;
-                        return new ECPublicKeyParameters("ECDH", ecdhK.Point, ecdhK.CurveOid);
+                        ECDHPublicBcpgKey ecdhK = (ECDHPublicBcpgKey)publicPk.Key;
+                        return new ECPublicKeyParameters("ECDH", PgpUtilities.DecodePoint(ecdhK), ecdhK.CurveOid);
                     case PublicKeyAlgorithmTag.ECDsa:
-                        EcdsaPublicBcpgKey ecdsaK = (EcdsaPublicBcpgKey)publicPk.Key;
-                        return new ECPublicKeyParameters("ECDSA", ecdsaK.Point, ecdsaK.CurveOid);
+                        ECDsaPublicBcpgKey ecdsaK = (ECDsaPublicBcpgKey)publicPk.Key;
+                        return new ECPublicKeyParameters("ECDSA", PgpUtilities.DecodePoint(ecdsaK), ecdsaK.CurveOid);
                     default:
                         throw new PgpException("unknown public key algorithm encountered");
                 }

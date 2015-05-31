@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.ECDH:
                 case PublicKeyAlgorithmTag.ECDsa:
                     ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
-                    secKey = new ECSecretBCPGKey(ecK.D);
+                    secKey = new ECSecretBcpgKey(ecK.D);
                     break;
                 default:
                     throw new PgpException("unknown key class");
@@ -572,13 +572,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         privateKey = new ElGamalPrivateKeyParameters(elPriv.X, elParams);
                         break;
                     case PublicKeyAlgorithmTag.ECDH:
-                        EcPublicBcpgKey ecdhPub = (EcPublicBcpgKey)pubPk.Key;
-                        ECSecretBCPGKey ecdhPriv = new ECSecretBCPGKey(bcpgIn);
+                        ECPublicBcpgKey ecdhPub = (ECPublicBcpgKey)pubPk.Key;
+                        ECSecretBcpgKey ecdhPriv = new ECSecretBcpgKey(bcpgIn);
                         privateKey = new ECPrivateKeyParameters("ECDH", ecdhPriv.X, ecdhPub.CurveOid);
                         break;
                     case PublicKeyAlgorithmTag.ECDsa:
-                        EcPublicBcpgKey ecPub = (EcPublicBcpgKey)pubPk.Key;
-                        ECSecretBCPGKey ecPriv = new ECSecretBCPGKey(bcpgIn);
+                        ECPublicBcpgKey ecPub = (ECPublicBcpgKey)pubPk.Key;
+                        ECSecretBcpgKey ecPriv = new ECSecretBcpgKey(bcpgIn);
                         privateKey = new ECPrivateKeyParameters("ECDSA", ecPriv.X, ecPub.CurveOid);
                         break;
                     default:
