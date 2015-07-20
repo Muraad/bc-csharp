@@ -120,7 +120,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 				subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
 
-                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, passPhrase, signatureDigest, rand));
+                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, passPhrase, true, rand));
 			}
             catch (PgpException e)
             {
@@ -163,171 +163,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return new PgpPublicKeyRing(pubKeys);
         }
 
-        #region OWN
-
-        #region Own Constructor that takes a checksum HashAlgorithm argument.
-
-        /// <summary>
-        /// Create a new key ring generator.
-        /// </summary>
-        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
-        /// <param name="masterKey">The master key pair.</param>
-        /// <param name="id">The id to be associated with the ring.</param>
-        /// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
-        /// <param name="passPhrase">The passPhrase to be used to protect secret keys.</param>
-        /// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
-        /// <param name="hashedPackets">Packets to be included in the certification hash.</param>
-        /// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
-        /// <param name="rand">input secured random.</param>
-        public PgpKeyRingGenerator(
-            int certificationLevel,
-            PgpKeyPair masterKey,
-            string id,
-            SymmetricKeyAlgorithmTag encAlgorithm,
-            char[] passPhrase,
-            PgpSignatureSubpacketVector hashedPackets,
-            PgpSignatureSubpacketVector unhashedPackets,
-            SecureRandom rand,
-            HashAlgorithmTag hashAlgo = HashAlgorithmTag.Sha1)
-        {
-            this.certificationLevel = certificationLevel;
-            this.masterKey = masterKey;
-            this.id = id;
-            this.encAlgorithm = encAlgorithm;
-            this.passPhrase = passPhrase;
-            this.hashedPacketVector = hashedPackets;
-            this.unhashedPacketVector = unhashedPackets;
-            this.rand = rand;
-
-            keys.Add(new PgpSecretKey(certificationLevel, masterKey, id, encAlgorithm, passPhrase, hashAlgo, hashedPackets, unhashedPackets, rand));
-        }
 
         public PgpKeyRingGenerator(
             PgpSecretKey masterKey,
             char[] masterPass)
         {
             this.passPhrase = masterPass;
-            PgpPrivateKey privKey =  masterKey.ExtractPrivateKey(masterPass);
+            PgpPrivateKey privKey = masterKey.ExtractPrivateKey(masterPass);
             PgpPublicKey pubKey = masterKey.PublicKey;
             this.masterKey = new PgpKeyPair(pubKey, privKey);
             keys.Add(masterKey);
         }
 
-        #endregion
-
-        #region Own AddSubKey Method that takes a HashAlgorithm tag argument.
-
         public void AddSubKey(
             PgpSecretKey secretKey)
         {
-            if(secretKey != null)
+            if (secretKey != null)
                 keys.Add(secretKey);
         }
-
-        public void AddSubKey(
-            PgpKeyPair keyPair, 
-            char[] subPass,
-            SecureRandom random,
-            HashAlgorithmTag hashAlgo = HashAlgorithmTag.Sha1)
-        {
-            AddSubKey(keyPair, this.hashedPacketVector, this.unhashedPacketVector, subPass, random, hashAlgo);
-        }
-
-        /// <summary>
-        /// Add a subkey with specific hashed and unhashed packets associated with it and
-        /// default certification.
-        /// </summary>
-        /// <param name="keyPair">Public/private key pair.</param>
-        /// <param name="hashedPackets">Hashed packet values to be included in certification.</param>
-        /// <param name="unhashedPackets">Unhashed packets values to be included in certification.</param>
-        /// <exception cref="PgpException"></exception>
-        public void AddSubKey(
-            PgpKeyPair keyPair,
-            PgpSignatureSubpacketVector hashedPackets,
-            PgpSignatureSubpacketVector unhashedPackets,
-            char[] subPass,
-            SecureRandom random,
-            HashAlgorithmTag signatureDigest = HashAlgorithmTag.Sha1)
-        {
-            try
-            {
-                PgpSignatureGenerator sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, signatureDigest);
-
-                //
-                // Generate the certification
-                //
-                sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey);
-
-                sGen.SetHashedSubpackets(hashedPackets);
-                sGen.SetUnhashedSubpackets(unhashedPackets);
-
-                IList subSigs = Platform.CreateArrayList();
-
-                subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
-                char[] tmpPass = subPass == null ? passPhrase : subPass;
-
-                if (random == null)
-                    random = rand;
-
-                keys.Add(new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), encAlgorithm, tmpPass, signatureDigest, random));
-            }
-            catch (PgpException e)
-            {
-                throw e;
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("exception adding subkey: ", e);
-            }
-        }
-
-        public static PgpSecretKey CreateSubKey(
-            PgpSecretKey masterKey,
-            char[] secKeyPass,
-            PgpKeyPair keyPair,
-            PgpSignatureSubpacketVector hashedPackets,
-            PgpSignatureSubpacketVector unhashedPackets,
-            char[] subPass,
-            SecureRandom random,
-            HashAlgorithmTag signatureDigest = HashAlgorithmTag.Sha1,
-            SymmetricKeyAlgorithmTag symmAlgo = SymmetricKeyAlgorithmTag.Aes256)
-        {
-            try
-            {
-                PgpPrivateKey masterPrivKey = masterKey.ExtractPrivateKey(secKeyPass);
-
-                PgpSignatureGenerator sGen = new PgpSignatureGenerator(masterKey.PublicKey.Algorithm, signatureDigest);
-
-                //
-                // Generate the certification
-                //
-                sGen.InitSign(PgpSignature.SubkeyBinding, masterPrivKey);
-
-                sGen.SetHashedSubpackets(hashedPackets);
-                sGen.SetUnhashedSubpackets(unhashedPackets);
-
-                IList subSigs = Platform.CreateArrayList();
-
-                subSigs.Add(sGen.GenerateCertification(masterKey.PublicKey, keyPair.PublicKey));
-
-                char[] tmpPass = subPass == null ? secKeyPass : subPass;
-                return new PgpSecretKey(keyPair.PrivateKey, new PgpPublicKey(keyPair.PublicKey, null, subSigs), symmAlgo, tmpPass, signatureDigest, random);
-            }
-            catch (PgpException e)
-            {
-                throw e;
-            }
-            catch (Exception e)
-            {
-                throw new PgpException("exception adding subkey: ", e);
-            }
-        }
-
-        #endregion
-
-
-        #endregion
-
-
     }
 }

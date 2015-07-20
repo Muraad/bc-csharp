@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		}
 
 		/// <summary>Return the decrypted data stream for the packet.</summary>
-        public Stream GetDataStream(PgpPrivateKey privKey, HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
+        public Stream GetDataStream(PgpPrivateKey privKey)
         {
             byte[] plain = null;
             plain = FetchSymmetricKeyData(privKey);
@@ -137,10 +137,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     truncStream = new TruncatedStream(encStream);
 
-                    if (validityDigest == HashAlgorithmTag.None)
-                        validityDigest = HashAlgorithmTag.Sha1;         // Must be at least Sha1. None is not allowed here!!
-
-					string digestName = PgpUtilities.GetDigestName(validityDigest);
+					string digestName = PgpUtilities.GetDigestName(HashAlgorithmTag.Sha1);
 					IDigest digest = DigestUtilities.GetDigest(digestName);
 
 					encStream = new DigestStream(truncStream, digest, null);
@@ -185,55 +182,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("Exception starting decryption", e);
             }
 		}
-
-        private byte[] getFingerprint(PublicKeyPacket publicPk)
-        {
-            IBcpgKey key = publicPk.Key;
-            byte[] fingerprint = null;
-
-            if (publicPk.Version <= 3)
-            {
-                RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
-
-                try
-                {
-                    IDigest digest = DigestUtilities.GetDigest("MD5");
-
-                    byte[] bytes = rK.Modulus.ToByteArrayUnsigned();
-                    digest.BlockUpdate(bytes, 0, bytes.Length);
-
-                    bytes = rK.PublicExponent.ToByteArrayUnsigned();
-                    digest.BlockUpdate(bytes, 0, bytes.Length);
-
-                    fingerprint = DigestUtilities.DoFinal(digest);
-                }
-                //catch (NoSuchAlgorithmException)
-                catch (Exception e)
-                {
-                    throw new IOException("can't find MD5", e);
-                }
-            }
-            else
-            {
-                byte[] kBytes = publicPk.GetEncodedContents();
-
-                try
-                {
-                    IDigest digest = DigestUtilities.GetDigest("SHA1");
-
-                    digest.Update(0x99);
-                    digest.Update((byte)(kBytes.Length >> 8));
-                    digest.Update((byte)kBytes.Length);
-                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
-                    fingerprint = DigestUtilities.DoFinal(digest);
-                }
-                catch (Exception e)
-                {
-                    throw new IOException("can't find SHA1", e);
-                }
-            }
-            return fingerprint;
-        }
 
 		private byte[] FetchSymmetricKeyData(
 			PgpPrivateKey privKey)
@@ -359,6 +307,56 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("error setting asymmetric cipher", e);
             }
+        }
+
+
+        private byte[] getFingerprint(PublicKeyPacket publicPk)
+        {
+            IBcpgKey key = publicPk.Key;
+            byte[] fingerprint = null;
+
+            if (publicPk.Version <= 3)
+            {
+                RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
+
+                try
+                {
+                    IDigest digest = DigestUtilities.GetDigest("MD5");
+
+                    byte[] bytes = rK.Modulus.ToByteArrayUnsigned();
+                    digest.BlockUpdate(bytes, 0, bytes.Length);
+
+                    bytes = rK.PublicExponent.ToByteArrayUnsigned();
+                    digest.BlockUpdate(bytes, 0, bytes.Length);
+
+                    fingerprint = DigestUtilities.DoFinal(digest);
+                }
+                //catch (NoSuchAlgorithmException)
+                catch (Exception e)
+                {
+                    throw new IOException("can't find MD5", e);
+                }
+            }
+            else
+            {
+                byte[] kBytes = publicPk.GetEncodedContents();
+
+                try
+                {
+                    IDigest digest = DigestUtilities.GetDigest("SHA1");
+
+                    digest.Update(0x99);
+                    digest.Update((byte)(kBytes.Length >> 8));
+                    digest.Update((byte)kBytes.Length);
+                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
+                    fingerprint = DigestUtilities.DoFinal(digest);
+                }
+                catch (Exception e)
+                {
+                    throw new IOException("can't find SHA1", e);
+                }
+            }
+            return fingerprint;
         }
 
         private byte[] UnpadSessionData(byte[] encoded)
