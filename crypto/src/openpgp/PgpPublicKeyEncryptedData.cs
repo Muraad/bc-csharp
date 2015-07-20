@@ -91,10 +91,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public Stream GetDataStream(PgpPrivateKey privKey, HashAlgorithmTag validityDigest = HashAlgorithmTag.Sha1)
         {
             byte[] plain = null;
-            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
-                plain = DecryptSessionData(privKey);
-			else 
-                plain = FetchSymmetricKeyData(privKey);
+            plain = FetchSymmetricKeyData(privKey);
 
 			IBufferedCipher c2;
 			string cipherName = PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag) plain[0]);
@@ -238,12 +235,89 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return fingerprint;
         }
 
-        private byte[] DecryptSessionData(PgpPrivateKey privateKey)
+		private byte[] FetchSymmetricKeyData(
+			PgpPrivateKey privKey)
+		{
+            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
+                return DecryptECDHSessionData(privKey);
+            else
+            {
+                IBufferedCipher c1 = GetKeyCipher(keyData.Algorithm);
+
+                try
+                {
+                    c1.Init(false, privKey.Key);
+                }
+                catch (InvalidKeyException e)
+                {
+                    throw new PgpException("error setting asymmetric cipher", e);
+                }
+
+                BigInteger[] keyD = keyData.GetEncSessionKey();
+
+                if (keyData.Algorithm == PublicKeyAlgorithmTag.RsaEncrypt
+                    || keyData.Algorithm == PublicKeyAlgorithmTag.RsaGeneral)
+                {
+                    c1.ProcessBytes(keyD[0].ToByteArrayUnsigned());
+                }
+                else
+                {
+                    ElGamalPrivateKeyParameters k = (ElGamalPrivateKeyParameters)privKey.Key;
+                    int size = (k.Parameters.P.BitLength + 7) / 8;
+
+                    byte[] bi = keyD[0].ToByteArray();
+
+                    int diff = bi.Length - size;
+                    if (diff >= 0)
+                    {
+                        c1.ProcessBytes(bi, diff, size);
+                    }
+                    else
+                    {
+                        byte[] zeros = new byte[-diff];
+                        c1.ProcessBytes(zeros);
+                        c1.ProcessBytes(bi);
+                    }
+
+                    bi = keyD[1].ToByteArray();
+
+                    diff = bi.Length - size;
+                    if (diff >= 0)
+                    {
+                        c1.ProcessBytes(bi, diff, size);
+                    }
+                    else
+                    {
+                        byte[] zeros = new byte[-diff];
+                        c1.ProcessBytes(zeros);
+                        c1.ProcessBytes(bi);
+                    }
+                }
+
+                byte[] plain;
+                try
+                {
+                    plain = c1.DoFinal();
+                }
+                catch (Exception e)
+                {
+                    throw new PgpException("exception decrypting secret key", e);
+                }
+
+                if (!ConfirmCheckSum(plain))
+                    throw new PgpKeyValidationException("key checksum failed");
+
+                return plain;
+            }
+		}
+
+        private byte[] DecryptECDHSessionData(PgpPrivateKey privateKey)
         {
             ECPrivateKeyParameters keyParams = (ECPrivateKeyParameters)privateKey.Key;
 
             ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)privateKey.PublicKeyPacket.Key;
             X9ECParameters x9Params = ECNamedCurveTable.GetByOid(ecKey.CurveOid);
+
             if (x9Params == null)
                 x9Params = CustomNamedCurves.GetByOid(ecKey.CurveOid);
 
@@ -304,76 +378,5 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             Array.Copy(encoded, 0, taggedKey, 0, taggedKey.Length);
             return taggedKey;
         }
-
-		private byte[] FetchSymmetricKeyData(
-			PgpPrivateKey privKey)
-		{
-			IBufferedCipher c1 = GetKeyCipher(keyData.Algorithm);
-
-			try
-			{
-				c1.Init(false, privKey.Key);
-			}
-			catch (InvalidKeyException e)
-			{
-				throw new PgpException("error setting asymmetric cipher", e);
-			}
-
-			BigInteger[] keyD = keyData.GetEncSessionKey();
-
-			if (keyData.Algorithm == PublicKeyAlgorithmTag.RsaEncrypt
-				|| keyData.Algorithm == PublicKeyAlgorithmTag.RsaGeneral)
-			{
-				c1.ProcessBytes(keyD[0].ToByteArrayUnsigned());
-			}
-			else
-			{
-				ElGamalPrivateKeyParameters k = (ElGamalPrivateKeyParameters)privKey.Key;
-				int size = (k.Parameters.P.BitLength + 7) / 8;
-
-				byte[] bi = keyD[0].ToByteArray();
-
-				int diff = bi.Length - size;
-				if (diff >= 0)
-				{
-					c1.ProcessBytes(bi, diff, size);
-				}
-				else
-				{
-					byte[] zeros = new byte[-diff];
-					c1.ProcessBytes(zeros);
-					c1.ProcessBytes(bi);
-				}
-
-				bi = keyD[1].ToByteArray();
-
-				diff = bi.Length - size;
-				if (diff >= 0)
-				{
-					c1.ProcessBytes(bi, diff, size);
-				}
-				else
-				{
-					byte[] zeros = new byte[-diff];
-					c1.ProcessBytes(zeros);
-					c1.ProcessBytes(bi);
-				}
-			}
-
-			byte[] plain;
-			try
-			{
-				plain = c1.DoFinal();
-			}
-			catch (Exception e)
-			{
-				throw new PgpException("exception decrypting secret key", e);
-			}
-
-			if (!ConfirmCheckSum(plain))
-				throw new PgpKeyValidationException("key checksum failed");
-
-			return plain;
-		}
 	}
 }
