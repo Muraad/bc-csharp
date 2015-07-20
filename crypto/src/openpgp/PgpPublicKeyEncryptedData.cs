@@ -239,7 +239,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			PgpPrivateKey privKey)
 		{
             if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
-                return DecryptECDHSessionData(privKey);
+                return FetchECDHSymmetricKeyData(privKey);
             else
             {
                 IBufferedCipher c1 = GetKeyCipher(keyData.Algorithm);
@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
 		}
 
-        private byte[] DecryptECDHSessionData(PgpPrivateKey privateKey)
+        private byte[] FetchECDHSymmetricKeyData(PgpPrivateKey privateKey)
         {
             ECPrivateKeyParameters keyParams = (ECPrivateKeyParameters)privateKey.Key;
 
