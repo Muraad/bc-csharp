@@ -91,7 +91,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public Stream GetDataStream(PgpPrivateKey privKey)
         {
             byte[] plain = null;
-            plain = FetchSymmetricKeyData(privKey);
+            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
+                plain = FetchECDHSymmetricKeyData(privKey);
+            else
+                plain = FetchSymmetricKeyData(privKey);
 
 			IBufferedCipher c2;
 			string cipherName = PgpUtilities.GetSymmetricCipherName((SymmetricKeyAlgorithmTag) plain[0]);
@@ -186,10 +189,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		private byte[] FetchSymmetricKeyData(
 			PgpPrivateKey privKey)
 		{
-            if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
-                return FetchECDHSymmetricKeyData(privKey);
-            else
-            {
+            //if (keyData.Algorithm == PublicKeyAlgorithmTag.ECDH)
+            //    return FetchECDHSymmetricKeyData(privKey);
+            //else
+            //{
                 IBufferedCipher c1 = GetKeyCipher(keyData.Algorithm);
 
                 try
@@ -256,7 +259,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new PgpKeyValidationException("key checksum failed");
 
                 return plain;
-            }
+            //}
 		}
 
         private byte[] FetchECDHSymmetricKeyData(PgpPrivateKey privateKey)
