@@ -24,6 +24,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+        public static PgpSignature GetEmbeddedSignature(SignatureSubpacket subPacket)
+        {
+            PgpSignature sig = null;
+            if(subPacket.SubpacketType == SignatureSubpacketTag.EmbeddedSignature)
+            {
+                using (BcpgInputStream bcpgStream = BcpgInputStream.Wrap(new MemoryStream(subPacket.GetData())))
+                {
+                    sig = new PgpSignature(new SignaturePacket(bcpgStream));
+                }
+            }
+            return sig;
+        }
+
 		public static MPInteger[] DsaSigToMpi(
 			byte[] encoding)
 		{
