@@ -34,7 +34,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             DateTime				time)
         {
             this.pub = new PgpPublicKey(algorithm, pubKey, time);
+<<<<<<< HEAD
 			this.priv = new PgpPrivateKey(privKey, pub.KeyId, pub.publicPk);
+=======
+			this.priv = new PgpPrivateKey(pub.KeyId, pub.PublicKeyPacket, privKey);
+>>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
         }
 
 		/// <summary>Create a key pair from a PgpPrivateKey and a PgpPublicKey.</summary>

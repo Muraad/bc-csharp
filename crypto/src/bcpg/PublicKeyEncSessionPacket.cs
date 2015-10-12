@@ -2,6 +2,8 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -12,7 +14,7 @@ namespace Org.BouncyCastle.Bcpg
 		private int version;
 		private long keyId;
 		private PublicKeyAlgorithmTag algorithm;
-		private BigInteger[] data;
+        private byte[][] data;
 
 		internal PublicKeyEncSessionPacket(
 			BcpgInputStream bcpgIn)
@@ -34,36 +36,45 @@ namespace Org.BouncyCastle.Bcpg
 			{
 				case PublicKeyAlgorithmTag.RsaEncrypt:
 				case PublicKeyAlgorithmTag.RsaGeneral:
-					data = new BigInteger[]{ new MPInteger(bcpgIn).Value };
+					data = new byte[][]{ new MPInteger(bcpgIn).GetEncoded() };
 					break;
 				case PublicKeyAlgorithmTag.ElGamalEncrypt:
 				case PublicKeyAlgorithmTag.ElGamalGeneral:
-					data = new BigInteger[]
-					{
-						new MPInteger(bcpgIn).Value,
-						new MPInteger(bcpgIn).Value
-					};
+                    MPInteger p = new MPInteger(bcpgIn);
+                    MPInteger g = new MPInteger(bcpgIn);
+					data = new byte[][]{
+                        p.GetEncoded(),
+                        g.GetEncoded(),
+                    };
 					break;
                 case PublicKeyAlgorithmTag.ECDH:
+<<<<<<< HEAD
                     data = new BigInteger[]{new MPInteger(bcpgIn).Value};
+=======
+                    data = new byte[][]{ Streams.ReadAll(bcpgIn) };
+>>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
                     break;
 				default:
 					throw new IOException("unknown PGP public key algorithm encountered");
 			}
 		}
 
-		public PublicKeyEncSessionPacket(
-			long					keyId,
-			PublicKeyAlgorithmTag	algorithm,
-			BigInteger[]			data)
+        public PublicKeyEncSessionPacket(
+			long                    keyId,
+			PublicKeyAlgorithmTag   algorithm,
+			byte[][]                data)
 		{
 			this.version = 3;
 			this.keyId = keyId;
 			this.algorithm = algorithm;
-			this.data = (BigInteger[]) data.Clone();
+            this.data = new byte[data.Length][];
+            for (int i = 0; i < data.Length; ++i)
+            {
+                this.data[i] = Arrays.Clone(data[i]);
+            }
 		}
 
-		public int Version
+        public int Version
 		{
 			get { return version; }
 		}
@@ -78,12 +89,12 @@ namespace Org.BouncyCastle.Bcpg
 			get { return algorithm; }
 		}
 
-		public BigInteger[] GetEncSessionKey()
+        public byte[][] GetEncSessionKey()
 		{
-			return (BigInteger[]) data.Clone();
+			return data;
 		}
 
-		public override void Encode(
+        public override void Encode(
 			BcpgOutputStream bcpgOut)
 		{
 			MemoryStream bOut = new MemoryStream();
@@ -95,12 +106,14 @@ namespace Org.BouncyCastle.Bcpg
 
 			pOut.WriteByte((byte)algorithm);
 
-			for (int i = 0; i != data.Length; i++)
-			{
-				MPInteger.Encode(pOut, data[i]);
-			}
+            for (int i = 0; i < data.Length; ++i)
+            {
+                pOut.Write(data[i]);
+            }
 
-			bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession , bOut.ToArray(), true);
+            pOut.Close();
+
+            bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession , bOut.ToArray(), true);
 		}
 	}
 }

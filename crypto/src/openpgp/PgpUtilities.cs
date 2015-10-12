@@ -103,7 +103,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				case PublicKeyAlgorithmTag.Dsa:
 					encAlg = "DSA";
 					break;
-				case PublicKeyAlgorithmTag.ElGamalEncrypt: // in some malformed cases.
+                case PublicKeyAlgorithmTag.ECDH:
+                    encAlg = "ECDH";
+                    break;
+                case PublicKeyAlgorithmTag.ECDsa:
+                    encAlg = "ECDSA";
+                    break;
+                case PublicKeyAlgorithmTag.ElGamalEncrypt: // in some malformed cases.
 				case PublicKeyAlgorithmTag.ElGamalGeneral:
 					encAlg = "ElGamal";
 					break;
@@ -156,7 +162,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-	public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
+        public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
         {
             int keySize;
             switch (algorithm)
@@ -214,9 +220,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             char[]						passPhrase)
         {
 			int keySize = GetKeySize(algorithm);
+<<<<<<< HEAD
 
             // TODO: Why not byte[] directly!!
 			byte[] pBytes = Strings.ToByteArray(new string(passPhrase));
+=======
+			byte[] pBytes = Encoding.UTF8.GetBytes(passPhrase);
+>>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
 			byte[] keyBytes = new byte[(keySize + 7) / 8];
 
 			int generatedBytes = 0;
@@ -508,6 +518,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+<<<<<<< HEAD
 
         public static Math.EC.ECPoint DecodePoint(ECPublicBcpgKey pubKey)
         {
@@ -555,6 +566,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             else if (oid == Asn1.Sec.SecObjectIdentifiers.SecP384r1)
                 symmAlgo = SymmetricKeyAlgorithmTag.Aes192;
             return symmAlgo;
+=======
+        internal static IWrapper CreateWrapper(SymmetricKeyAlgorithmTag encAlgorithm)
+        {
+            switch (encAlgorithm)
+            {
+            case SymmetricKeyAlgorithmTag.Aes128:
+            case SymmetricKeyAlgorithmTag.Aes192:
+            case SymmetricKeyAlgorithmTag.Aes256:
+                return WrapperUtilities.GetWrapper("AESWRAP");
+            case SymmetricKeyAlgorithmTag.Camellia128:
+            case SymmetricKeyAlgorithmTag.Camellia192:
+            case SymmetricKeyAlgorithmTag.Camellia256:
+                return WrapperUtilities.GetWrapper("CAMELLIAWRAP");
+            default:
+                throw new PgpException("unknown wrap algorithm: " + encAlgorithm);
+            }
+>>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
         }
     }
 }

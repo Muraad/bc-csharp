@@ -36,7 +36,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
                 case PublicKeyAlgorithmTag.Dsa:
                     return "DSA";
                 case PublicKeyAlgorithmTag.ECDH:
+<<<<<<< HEAD
                     return "EC";
+=======
+                    return "ECDH";
+>>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
                 case PublicKeyAlgorithmTag.ECDsa:
                     return "ECDSA";
                 case PublicKeyAlgorithmTag.ElGamalGeneral:

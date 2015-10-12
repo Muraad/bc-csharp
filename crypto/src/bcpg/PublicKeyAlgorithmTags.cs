@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Bcpg
 {
     /// <remarks>Public Key Algorithm tag numbers.</remarks>
@@ -8,7 +10,13 @@ namespace Org.BouncyCastle.Bcpg
         RsaSign = 3,			// RSA Sign-Only
         ElGamalEncrypt = 16,	// Elgamal (Encrypt-Only), see [ELGAMAL]
         Dsa = 17,				// DSA (Digital Signature Standard)
+<<<<<<< HEAD
         ECDH = 18,				// Reserved for Elliptic Curve
+=======
+        [Obsolete("Use 'ECDH' instead")]
+        EC = 18,				// Reserved for Elliptic Curve
+        ECDH = 18,              // Reserved for Elliptic Curve (actual algorithm name)
+>>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
         ECDsa = 19,				// Reserved for ECDSA
         ElGamalGeneral = 20,	// Elgamal (Encrypt or Sign)
         DiffieHellman = 21,		// Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME)
