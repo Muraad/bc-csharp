@@ -75,17 +75,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpSignature.DefaultCertification
         };
 
-        private long				keyId;
-        private byte[]				fingerprint;
-        private int					keyStrength;
+        private long keyId;
+        private byte[] fingerprint;
+        private int keyStrength;
 
-        internal PublicKeyPacket	publicPk;
-        internal TrustPacket		trustPk;
-        internal IList			    keySigs = Platform.CreateArrayList();
-        internal IList			    ids = Platform.CreateArrayList();
-        internal IList              idTrusts = Platform.CreateArrayList();
-        internal IList              idSigs = Platform.CreateArrayList();
-        internal IList			    subSigs;
+        internal PublicKeyPacket publicPk;
+        internal TrustPacket trustPk;
+        internal IList keySigs = Platform.CreateArrayList();
+        internal IList ids = Platform.CreateArrayList();
+        internal IList idTrusts = Platform.CreateArrayList();
+        internal IList idSigs = Platform.CreateArrayList();
+        internal IList subSigs;
 
         private void Init()
         {
@@ -95,33 +95,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             if (publicPk.Version <= 3)
             {
-                RsaPublicBcpgKey rK = (RsaPublicBcpgKey) key;
+                RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
 
                 this.keyId = rK.Modulus.LongValue;
                 this.keyStrength = rK.Modulus.BitLength;
             }
             else
             {
-<<<<<<< HEAD
-                byte[] kBytes = publicPk.GetEncodedContents();
-
-				try
-                {
-                    IDigest digest = DigestUtilities.GetDigest("SHA1");
-
-                    digest.Update(0x99);
-                    digest.Update((byte)(kBytes.Length >> 8));
-                    digest.Update((byte)kBytes.Length);
-                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
-                    this.fingerprint = DigestUtilities.DoFinal(digest);
-                }
-                catch (Exception e)
-                {
-                    throw new IOException("can't find SHA1", e);
-                }
-
-=======
->>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
                 this.keyId = (long)(((ulong)fingerprint[fingerprint.Length - 8] << 56)
                     | ((ulong)fingerprint[fingerprint.Length - 7] << 48)
                     | ((ulong)fingerprint[fingerprint.Length - 6] << 40)
@@ -145,12 +125,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
                 else if (key is ECPublicBcpgKey)
                 {
-<<<<<<< HEAD
-                    this.keyStrength = Crypto.Generators.ECKeyPairGenerator.FindECCurveByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
-                    //this.keyStrength = ECNamedCurveTable.GetByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
-=======
                     this.keyStrength = ECKeyPairGenerator.FindECCurveByOid(((ECPublicBcpgKey)key).CurveOid).Curve.FieldSize;
->>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
                 }
             }
         }
@@ -168,9 +143,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <exception cref="ArgumentException">If <c>pubKey</c> is not public.</exception>
         /// <exception cref="PgpException">On key creation problem.</exception>
         public PgpPublicKey(
-            PublicKeyAlgorithmTag	algorithm,
-            AsymmetricKeyParameter	pubKey,
-            DateTime				time)
+            PublicKeyAlgorithmTag algorithm,
+            AsymmetricKeyParameter pubKey,
+            DateTime time)
         {
             if (pubKey.IsPrivate)
                 throw new ArgumentException("Expected a public key", "pubKey");
@@ -178,13 +153,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             IBcpgKey bcpgKey;
             if (pubKey is RsaKeyParameters)
             {
-                RsaKeyParameters rK = (RsaKeyParameters) pubKey;
+                RsaKeyParameters rK = (RsaKeyParameters)pubKey;
 
                 bcpgKey = new RsaPublicBcpgKey(rK.Modulus, rK.Exponent);
             }
             else if (pubKey is DsaPublicKeyParameters)
             {
-                DsaPublicKeyParameters dK = (DsaPublicKeyParameters) pubKey;
+                DsaPublicKeyParameters dK = (DsaPublicKeyParameters)pubKey;
                 DsaParameters dP = dK.Parameters;
 
                 bcpgKey = new DsaPublicBcpgKey(dP.P, dP.Q, dP.G, dK.Y);
@@ -208,26 +183,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             else if (pubKey is ElGamalPublicKeyParameters)
             {
-                ElGamalPublicKeyParameters eK = (ElGamalPublicKeyParameters) pubKey;
+                ElGamalPublicKeyParameters eK = (ElGamalPublicKeyParameters)pubKey;
                 ElGamalParameters eS = eK.Parameters;
 
                 bcpgKey = new ElGamalPublicBcpgKey(eS.P, eS.G, eK.Y);
-            }
-            else if (pubKey is ECPublicKeyParameters)
-            {
-                ECPublicKeyParameters eK = (ECPublicKeyParameters)pubKey;
-
-                if (algorithm == PublicKeyAlgorithmTag.ECDH)
-                {
-                    HashAlgorithmTag ecdhHashAlgo = PgpUtilities.HashAlgoritmByCurveOid(eK.PublicKeyParamSet);
-                    SymmetricKeyAlgorithmTag ecdhSymmAlgo = PgpUtilities.SymmetricKeyAlgorithmByCurveOid(eK.PublicKeyParamSet);
-
-                    bcpgKey = new ECDHPublicBcpgKey(eK.PublicKeyParamSet, eK.Q, (int)ecdhHashAlgo, (int)ecdhSymmAlgo);
-                }
-                else
-                {
-                    bcpgKey = new ECDsaPublicBcpgKey(eK.PublicKeyParamSet, eK.Q);
-                }
             }
             else
             {
@@ -255,9 +214,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>Constructor for a sub-key.</summary>
         internal PgpPublicKey(
-            PublicKeyPacket	publicPk,
-            TrustPacket		trustPk,
-            IList           sigs)
+            PublicKeyPacket publicPk,
+            TrustPacket trustPk,
+            IList sigs)
         {
             this.publicPk = publicPk;
             this.trustPk = trustPk;
@@ -267,9 +226,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpPublicKey(
-            PgpPublicKey	key,
-            TrustPacket		trust,
-            IList           subSigs)
+            PgpPublicKey key,
+            TrustPacket trust,
+            IList subSigs)
         {
             this.publicPk = key.publicPk;
             this.trustPk = trust;
@@ -311,12 +270,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpPublicKey(
-            PublicKeyPacket	publicPk,
-            TrustPacket		trustPk,
-            IList		    keySigs,
-            IList		    ids,
-            IList           idTrusts,
-            IList           idSigs)
+            PublicKeyPacket publicPk,
+            TrustPacket trustPk,
+            IList keySigs,
+            IList ids,
+            IList idTrusts,
+            IList idSigs)
         {
             this.publicPk = publicPk;
             this.trustPk = trustPk;
@@ -329,9 +288,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         internal PgpPublicKey(
-            PublicKeyPacket	publicPk,
-            IList           ids,
-            IList           idSigs)
+            PublicKeyPacket publicPk,
+            IList ids,
+            IList idSigs)
         {
             this.publicPk = publicPk;
             this.ids = ids;
@@ -416,8 +375,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         private long GetExpirationTimeFromSig(
-            bool	selfSigned,
-            int		signatureType)
+            bool selfSigned,
+            int signatureType)
         {
             foreach (PgpSignature sig in GetSignaturesOfType(signatureType))
             {
@@ -446,7 +405,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>The fingerprint of the key</summary>
         public byte[] GetFingerprint()
         {
-            return (byte[]) fingerprint.Clone();
+            return (byte[])fingerprint.Clone();
         }
 
         /// <summary>
@@ -520,12 +479,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         ElGamalPublicBcpgKey elK = (ElGamalPublicBcpgKey)publicPk.Key;
                         return new ElGamalPublicKeyParameters(elK.Y, new ElGamalParameters(elK.P, elK.G));
-                    case PublicKeyAlgorithmTag.ECDH:
-                        ECDHPublicBcpgKey ecdhK = (ECDHPublicBcpgKey)publicPk.Key;
-                        return new ECPublicKeyParameters("ECDH", PgpUtilities.DecodePoint(ecdhK), ecdhK.CurveOid);
-                    case PublicKeyAlgorithmTag.ECDsa:
-                        ECDsaPublicBcpgKey ecdsaK = (ECDsaPublicBcpgKey)publicPk.Key;
-                        return new ECPublicKeyParameters("ECDSA", PgpUtilities.DecodePoint(ecdsaK), ecdsaK.CurveOid);
                     default:
                         throw new PgpException("unknown public key algorithm encountered");
                 }
@@ -612,7 +565,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 if (userAttributes.Equals(ids[i]))
                 {
-                    return new EnumerableProxy((IList) idSigs[i]);
+                    return new EnumerableProxy((IList)idSigs[i]);
                 }
             }
 
@@ -705,7 +658,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     if (ids[i] is string)
                     {
-                        string id = (string) ids[i];
+                        string id = (string)ids[i];
 
                         bcpgOut.WritePacket(new UserIdPacket(id));
                     }
@@ -720,7 +673,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         bcpgOut.WritePacket((ContainedPacket)idTrusts[i]);
                     }
 
-                    foreach (PgpSignature sig in (IList) idSigs[i])
+                    foreach (PgpSignature sig in (IList)idSigs[i])
                     {
                         sig.Encode(bcpgOut);
                     }
@@ -770,9 +723,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The new certification.</param>
         /// <returns>The re-certified key.</returns>
         public static PgpPublicKey AddCertification(
-            PgpPublicKey	key,
-            string			id,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            string id,
+            PgpSignature certification)
         {
             return AddCert(key, id, certification);
         }
@@ -783,17 +736,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The new certification.</param>
         /// <returns>The re-certified key.</returns>
         public static PgpPublicKey AddCertification(
-            PgpPublicKey					key,
-            PgpUserAttributeSubpacketVector	userAttributes,
-            PgpSignature					certification)
+            PgpPublicKey key,
+            PgpUserAttributeSubpacketVector userAttributes,
+            PgpSignature certification)
         {
             return AddCert(key, userAttributes, certification);
         }
 
         private static PgpPublicKey AddCert(
-            PgpPublicKey	key,
-            object			id,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            object id,
+            PgpSignature certification)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             IList sigList = null;
@@ -802,7 +755,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 if (id.Equals(returnKey.ids[i]))
                 {
-                    sigList = (IList) returnKey.idSigs[i];
+                    sigList = (IList)returnKey.idSigs[i];
                 }
             }
 
@@ -831,8 +784,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// The re-certified key, or null if the user attribute subpacket was not found on the key.
         /// </returns>
         public static PgpPublicKey RemoveCertification(
-            PgpPublicKey					key,
-            PgpUserAttributeSubpacketVector	userAttributes)
+            PgpPublicKey key,
+            PgpUserAttributeSubpacketVector userAttributes)
         {
             return RemoveCert(key, userAttributes);
         }
@@ -842,15 +795,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="id">The ID that is to be removed.</param>
         /// <returns>The re-certified key, or null if the ID was not found on the key.</returns>
         public static PgpPublicKey RemoveCertification(
-            PgpPublicKey	key,
-            string			id)
+            PgpPublicKey key,
+            string id)
         {
             return RemoveCert(key, id);
         }
 
         private static PgpPublicKey RemoveCert(
-            PgpPublicKey	key,
-            object			id)
+            PgpPublicKey key,
+            object id)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             bool found = false;
@@ -875,9 +828,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The certfication to be removed.</param>
         /// <returns>The re-certified key, or null if the certification was not found.</returns>
         public static PgpPublicKey RemoveCertification(
-            PgpPublicKey	key,
-            string			id,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            string id,
+            PgpSignature certification)
         {
             return RemoveCert(key, id, certification);
         }
@@ -888,17 +841,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The certification to be removed.</param>
         /// <returns>The re-certified key, or null if the certification was not found.</returns>
         public static PgpPublicKey RemoveCertification(
-            PgpPublicKey					key,
-            PgpUserAttributeSubpacketVector	userAttributes,
-            PgpSignature					certification)
+            PgpPublicKey key,
+            PgpUserAttributeSubpacketVector userAttributes,
+            PgpSignature certification)
         {
             return RemoveCert(key, userAttributes, certification);
         }
 
         private static PgpPublicKey RemoveCert(
-            PgpPublicKey	key,
-            object			id,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            object id,
+            PgpSignature certification)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             bool found = false;
@@ -907,7 +860,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 if (id.Equals(returnKey.ids[i]))
                 {
-                    IList certs = (IList) returnKey.idSigs[i];
+                    IList certs = (IList)returnKey.idSigs[i];
                     found = certs.Contains(certification);
 
                     if (found)
@@ -925,8 +878,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The key signature to be added.</param>
         /// <returns>The new changed public key object.</returns>
         public static PgpPublicKey AddCertification(
-            PgpPublicKey	key,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            PgpSignature certification)
         {
             if (key.IsMasterKey)
             {
@@ -962,15 +915,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="certification">The certfication to be removed.</param>
         /// <returns>The modified key, null if the certification was not found.</returns>
         public static PgpPublicKey RemoveCertification(
-            PgpPublicKey	key,
-            PgpSignature	certification)
+            PgpPublicKey key,
+            PgpSignature certification)
         {
             PgpPublicKey returnKey = new PgpPublicKey(key);
             IList sigs = returnKey.subSigs != null
-                ?	returnKey.subSigs
-                :	returnKey.keySigs;
+                ? returnKey.subSigs
+                : returnKey.keySigs;
 
-//			bool found = sigs.Remove(certification);
+            //			bool found = sigs.Remove(certification);
             int pos = sigs.IndexOf(certification);
             bool found = pos >= 0;
 

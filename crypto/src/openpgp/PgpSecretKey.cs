@@ -4,11 +4,7 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-<<<<<<< HEAD
-using Org.BouncyCastle.Crypto.Digests;
-=======
 using Org.BouncyCastle.Crypto.Generators;
->>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -16,7 +12,6 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-
     /// <remarks>General class to handle a PGP secret key object.</remarks>
     public class PgpSecretKey
     {
@@ -76,11 +71,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 case PublicKeyAlgorithmTag.ElGamalGeneral:
                     ElGamalPrivateKeyParameters esK = (ElGamalPrivateKeyParameters)privKey.Key;
                     secKey = new ElGamalSecretBcpgKey(esK.X);
-                    break;
-                case PublicKeyAlgorithmTag.ECDH:
-                case PublicKeyAlgorithmTag.ECDsa:
-                    ECPrivateKeyParameters ecK = (ECPrivateKeyParameters)privKey.Key;
-                    secKey = new ECSecretBcpgKey(ecK.D);
                     break;
                 default:
                     throw new PgpException("unknown key class");
@@ -454,7 +444,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 AsymmetricKeyParameter privateKey;
                 switch (pubPk.Algorithm)
                 {
-<<<<<<< HEAD
                     case PublicKeyAlgorithmTag.RsaEncrypt:
                     case PublicKeyAlgorithmTag.RsaGeneral:
                     case PublicKeyAlgorithmTag.RsaSign:
@@ -477,6 +466,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         DsaParameters dsaParams = new DsaParameters(dsaPub.P, dsaPub.Q, dsaPub.G);
                         privateKey = new DsaPrivateKeyParameters(dsaPriv.X, dsaParams);
                         break;
+                    case PublicKeyAlgorithmTag.ECDH:
+                        privateKey = GetECKey("ECDH", bcpgIn);
+                        break;
+                    case PublicKeyAlgorithmTag.ECDsa:
+                        privateKey = GetECKey("ECDSA", bcpgIn);
+                        break;
                     case PublicKeyAlgorithmTag.ElGamalEncrypt:
                     case PublicKeyAlgorithmTag.ElGamalGeneral:
                         ElGamalPublicBcpgKey elPub = (ElGamalPublicBcpgKey)pubPk.Key;
@@ -484,63 +479,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                         ElGamalParameters elParams = new ElGamalParameters(elPub.P, elPub.G);
                         privateKey = new ElGamalPrivateKeyParameters(elPriv.X, elParams);
                         break;
-                    case PublicKeyAlgorithmTag.ECDH:
-                        ECPublicBcpgKey ecdhPub = (ECPublicBcpgKey)pubPk.Key;
-                        ECSecretBcpgKey ecdhPriv = new ECSecretBcpgKey(bcpgIn);
-                        privateKey = new ECPrivateKeyParameters("ECDH", ecdhPriv.X, ecdhPub.CurveOid);
-                        break;
-                    case PublicKeyAlgorithmTag.ECDsa:
-                        ECPublicBcpgKey ecPub = (ECPublicBcpgKey)pubPk.Key;
-                        ECSecretBcpgKey ecPriv = new ECSecretBcpgKey(bcpgIn);
-                        privateKey = new ECPrivateKeyParameters("ECDSA", ecPriv.X, ecPub.CurveOid);
-                        break;
                     default:
                         throw new PgpException("unknown public key algorithm encountered");
                 }
 
-                return new PgpPrivateKey(privateKey, KeyId, pubPk);
-=======
-                case PublicKeyAlgorithmTag.RsaEncrypt:
-                case PublicKeyAlgorithmTag.RsaGeneral:
-                case PublicKeyAlgorithmTag.RsaSign:
-                    RsaPublicBcpgKey rsaPub = (RsaPublicBcpgKey)pubPk.Key;
-                    RsaSecretBcpgKey rsaPriv = new RsaSecretBcpgKey(bcpgIn);
-                    RsaPrivateCrtKeyParameters rsaPrivSpec = new RsaPrivateCrtKeyParameters(
-                        rsaPriv.Modulus,
-                        rsaPub.PublicExponent,
-                        rsaPriv.PrivateExponent,
-                        rsaPriv.PrimeP,
-                        rsaPriv.PrimeQ,
-                        rsaPriv.PrimeExponentP,
-                        rsaPriv.PrimeExponentQ,
-                        rsaPriv.CrtCoefficient);
-                    privateKey = rsaPrivSpec;
-                    break;
-                case PublicKeyAlgorithmTag.Dsa:
-                    DsaPublicBcpgKey dsaPub = (DsaPublicBcpgKey)pubPk.Key;
-                    DsaSecretBcpgKey dsaPriv = new DsaSecretBcpgKey(bcpgIn);
-                    DsaParameters dsaParams = new DsaParameters(dsaPub.P, dsaPub.Q, dsaPub.G);
-                    privateKey = new DsaPrivateKeyParameters(dsaPriv.X, dsaParams);
-                    break;
-                case PublicKeyAlgorithmTag.ECDH:
-                    privateKey = GetECKey("ECDH", bcpgIn);
-                    break;
-                case PublicKeyAlgorithmTag.ECDsa:
-                    privateKey = GetECKey("ECDSA", bcpgIn);
-                    break;
-                case PublicKeyAlgorithmTag.ElGamalEncrypt:
-                case PublicKeyAlgorithmTag.ElGamalGeneral:
-                    ElGamalPublicBcpgKey elPub = (ElGamalPublicBcpgKey)pubPk.Key;
-                    ElGamalSecretBcpgKey elPriv = new ElGamalSecretBcpgKey(bcpgIn);
-                    ElGamalParameters elParams = new ElGamalParameters(elPub.P, elPub.G);
-                    privateKey = new ElGamalPrivateKeyParameters(elPriv.X, elParams);
-                    break;
-                default:
-                    throw new PgpException("unknown public key algorithm encountered");
-                }
-
                 return new PgpPrivateKey(KeyId, pubPk, privateKey);
->>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
             }
             catch (PgpException e)
             {

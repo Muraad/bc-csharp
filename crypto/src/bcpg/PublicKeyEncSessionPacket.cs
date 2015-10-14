@@ -7,104 +7,100 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Basic packet for a PGP public key.</remarks>
-	public class PublicKeyEncSessionPacket
-		: ContainedPacket //, PublicKeyAlgorithmTag
-	{
-		private int version;
-		private long keyId;
-		private PublicKeyAlgorithmTag algorithm;
+    /// <remarks>Basic packet for a PGP public key.</remarks>
+    public class PublicKeyEncSessionPacket
+        : ContainedPacket //, PublicKeyAlgorithmTag
+    {
+        private int version;
+        private long keyId;
+        private PublicKeyAlgorithmTag algorithm;
         private byte[][] data;
 
-		internal PublicKeyEncSessionPacket(
-			BcpgInputStream bcpgIn)
-		{
-			version = bcpgIn.ReadByte();
+        internal PublicKeyEncSessionPacket(
+            BcpgInputStream bcpgIn)
+        {
+            version = bcpgIn.ReadByte();
 
-			keyId |= (long)bcpgIn.ReadByte() << 56;
-			keyId |= (long)bcpgIn.ReadByte() << 48;
-			keyId |= (long)bcpgIn.ReadByte() << 40;
-			keyId |= (long)bcpgIn.ReadByte() << 32;
-			keyId |= (long)bcpgIn.ReadByte() << 24;
-			keyId |= (long)bcpgIn.ReadByte() << 16;
-			keyId |= (long)bcpgIn.ReadByte() << 8;
-			keyId |= (uint)bcpgIn.ReadByte();
+            keyId |= (long)bcpgIn.ReadByte() << 56;
+            keyId |= (long)bcpgIn.ReadByte() << 48;
+            keyId |= (long)bcpgIn.ReadByte() << 40;
+            keyId |= (long)bcpgIn.ReadByte() << 32;
+            keyId |= (long)bcpgIn.ReadByte() << 24;
+            keyId |= (long)bcpgIn.ReadByte() << 16;
+            keyId |= (long)bcpgIn.ReadByte() << 8;
+            keyId |= (uint)bcpgIn.ReadByte();
 
-			algorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
+            algorithm = (PublicKeyAlgorithmTag)bcpgIn.ReadByte();
 
-			switch ((PublicKeyAlgorithmTag) algorithm)
-			{
-				case PublicKeyAlgorithmTag.RsaEncrypt:
-				case PublicKeyAlgorithmTag.RsaGeneral:
-					data = new byte[][]{ new MPInteger(bcpgIn).GetEncoded() };
-					break;
-				case PublicKeyAlgorithmTag.ElGamalEncrypt:
-				case PublicKeyAlgorithmTag.ElGamalGeneral:
+            switch ((PublicKeyAlgorithmTag)algorithm)
+            {
+                case PublicKeyAlgorithmTag.RsaEncrypt:
+                case PublicKeyAlgorithmTag.RsaGeneral:
+                    data = new byte[][] { new MPInteger(bcpgIn).GetEncoded() };
+                    break;
+                case PublicKeyAlgorithmTag.ElGamalEncrypt:
+                case PublicKeyAlgorithmTag.ElGamalGeneral:
                     MPInteger p = new MPInteger(bcpgIn);
                     MPInteger g = new MPInteger(bcpgIn);
-					data = new byte[][]{
+                    data = new byte[][]{
                         p.GetEncoded(),
                         g.GetEncoded(),
                     };
-					break;
-                case PublicKeyAlgorithmTag.ECDH:
-<<<<<<< HEAD
-                    data = new BigInteger[]{new MPInteger(bcpgIn).Value};
-=======
-                    data = new byte[][]{ Streams.ReadAll(bcpgIn) };
->>>>>>> 06ba713c9b19102310675a6c58e07c68d8efb3c7
                     break;
-				default:
-					throw new IOException("unknown PGP public key algorithm encountered");
-			}
-		}
+                case PublicKeyAlgorithmTag.ECDH:
+                    data = new byte[][] { Streams.ReadAll(bcpgIn) };
+                    break;
+                default:
+                    throw new IOException("unknown PGP public key algorithm encountered");
+            }
+        }
 
         public PublicKeyEncSessionPacket(
-			long                    keyId,
-			PublicKeyAlgorithmTag   algorithm,
-			byte[][]                data)
-		{
-			this.version = 3;
-			this.keyId = keyId;
-			this.algorithm = algorithm;
+            long keyId,
+            PublicKeyAlgorithmTag algorithm,
+            byte[][] data)
+        {
+            this.version = 3;
+            this.keyId = keyId;
+            this.algorithm = algorithm;
             this.data = new byte[data.Length][];
             for (int i = 0; i < data.Length; ++i)
             {
                 this.data[i] = Arrays.Clone(data[i]);
             }
-		}
+        }
 
         public int Version
-		{
-			get { return version; }
-		}
+        {
+            get { return version; }
+        }
 
-		public long KeyId
-		{
-			get { return keyId; }
-		}
+        public long KeyId
+        {
+            get { return keyId; }
+        }
 
-		public PublicKeyAlgorithmTag Algorithm
-		{
-			get { return algorithm; }
-		}
+        public PublicKeyAlgorithmTag Algorithm
+        {
+            get { return algorithm; }
+        }
 
         public byte[][] GetEncSessionKey()
-		{
-			return data;
-		}
+        {
+            return data;
+        }
 
         public override void Encode(
-			BcpgOutputStream bcpgOut)
-		{
-			MemoryStream bOut = new MemoryStream();
-			BcpgOutputStream pOut = new BcpgOutputStream(bOut);
+            BcpgOutputStream bcpgOut)
+        {
+            MemoryStream bOut = new MemoryStream();
+            BcpgOutputStream pOut = new BcpgOutputStream(bOut);
 
-			pOut.WriteByte((byte) version);
+            pOut.WriteByte((byte)version);
 
-			pOut.WriteLong(keyId);
+            pOut.WriteLong(keyId);
 
-			pOut.WriteByte((byte)algorithm);
+            pOut.WriteByte((byte)algorithm);
 
             for (int i = 0; i < data.Length; ++i)
             {
@@ -113,7 +109,7 @@ namespace Org.BouncyCastle.Bcpg
 
             pOut.Close();
 
-            bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession , bOut.ToArray(), true);
-		}
-	}
+            bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession, bOut.ToArray(), true);
+        }
+    }
 }

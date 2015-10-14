@@ -14,11 +14,11 @@ namespace crypto_test
 
 			try
 			{
-				//Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
-				//Org.BouncyCastle.Bcpg.OpenPgp.Tests.Dsa2Test.?
-				//Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
-				//Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests.AllTests.Main(args);
-				/*Org.BouncyCastle.Cms.Tests.AllTests.Main(args);
+                //Org.BouncyCastle.Asn1.Tests.RegressionTest.Main(args);
+                //Org.BouncyCastle.Bcpg.OpenPgp.Tests.Dsa2Test.?
+                //Org.BouncyCastle.Bcpg.OpenPgp.Tests.RegressionTest.Main(args);
+                //Org.BouncyCastle.Bcpg.OpenPgp.Examples.Tests.AllTests.Main(args);
+                /*Org.BouncyCastle.Cms.Tests.AllTests.Main(args);
 				Org.BouncyCastle.Crypto.Tests.RegressionTest.Main(args);
 				Org.BouncyCastle.Crypto.IO.Tests.AllTests.Main(args);
 				Org.BouncyCastle.Math.Tests.AllTests.Main(args);
@@ -36,6 +36,15 @@ namespace crypto_test
 				Org.BouncyCastle.Tsp.Tests.AllTests.Main(args);
 				//Org.BouncyCastle.X509.Tests.?*/
 
+                var tmp = new Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpUnicodeTest();
+                tmp.TestAsciiPassphrase();
+                tmp.TestCyrillicPassphrase();
+                tmp.TestUmlautPassphrase();
+
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpUnicodeTest.Main(args);
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpECDHTest.Main(args);
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpECDsaTest.Main(args);
+                Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpECMessageTest.Main(args);
                 Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpSignatureTest.Main(args);
                 Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpRsaTest.Main(args);
                 Org.BouncyCastle.Bcpg.OpenPgp.Tests.PgpPbeTest.Main(args);
